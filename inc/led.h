@@ -10,6 +10,7 @@ public:
 	~LED();
 	void on();
 	void off();
+	void toggle();
 	bool is_on();
 };
 

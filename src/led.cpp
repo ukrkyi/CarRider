@@ -31,6 +31,11 @@ void LED::off()
 	HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
 }
 
+void LED::toggle()
+{
+	HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+}
+
 bool LED::is_on()
 {
 	return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET;
