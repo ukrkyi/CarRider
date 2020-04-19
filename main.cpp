@@ -2,7 +2,7 @@
 #include <stm32f4xx_hal.h>
 
 #include "motor_dc.h"
-#include "pwm.h"
+#include "ultrasonic.h"
 #include "led.h"
 
 static inline void delay(unsigned ms) {
@@ -21,40 +21,46 @@ void blink(LED& led, int n) {
 	}
 }
 
+LED led;
+Ultrasonic * range = NULL;
+volatile float distance = 0;
+
+extern "C" void TIM2_IRQHandler(void) {
+	if (range != NULL)
+		distance = range->processEcho(0);
+}
+
 int main()
 {
-	LED led;
 
 	led.on();
 	delay(2000);
 	led.off();
 
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	MotorDC drive(GPIO_PIN_0, GPIO_PIN_1), rotate(GPIO_PIN_2, GPIO_PIN_3);
+	Ultrasonic sensor(GPIOB, GPIO_PIN_0, GPIOA, GPIO_PIN_15,
+			  TIM3, TIM_CHANNEL_3, TIM2, TIM_CHANNEL_1, 100000);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
+	NVIC_EnableIRQ(TIM2_IRQn);
+	range = &sensor;
 
-	GPIO_InitTypeDef GPIO_InitStruct;
+	sensor.start();
 
-	GPIO_InitStruct.Pin = GPIO_PIN_1;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	const float refDistance = 200; // 0.1m
 
-	PWM motor1(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 80000);
-
-	for (int i = 50; i > 0; i -= 10){
-		blink(led, i / 10);
-		motor1.set(i);
-		delay(1000);
+	while(1) {
+		led.off();
+		if (distance - refDistance > 250)
+			drive.run(FORWARD);
+		else if (distance > 1) {
+			if (distance - refDistance < -100)
+				drive.run(BACKWARD);
+			else
+				drive.stop();
+		} else {
+			led.on(); // error
+			drive.stop();
+		}
+		delay(100);
 	}
-
-	motor1.stop();
-
-	//MotorDC drive(GPIO_PIN_0, GPIO_PIN_1), rotate(GPIO_PIN_2, GPIO_PIN_3);
-
-	led.on();
-
-
-	while(1) {}
 }

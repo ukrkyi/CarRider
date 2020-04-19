@@ -34,10 +34,12 @@ CppApplication {
         "inc/led.h",
         "inc/motor_dc.h",
         "inc/pwm.h",
+        "inc/ultrasonic.h",
         "main.cpp",
         "src/led.cpp",
         "src/motor_dc.cpp",
         "src/pwm.cpp",
+        "src/ultrasonic.cpp",
     ]
 
     FileTagger {
