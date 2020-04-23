@@ -29,29 +29,18 @@ int main()
 	delay(2000);
 	led.off();
 
-	__HAL_RCC_GPIOA_CLK_ENABLE();
+	PWM run_forward(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 160000),
+			run_backward(GPIOA, GPIO_PIN_1, TIM_CHANNEL_2, run_forward),
+			turn_right(GPIOA, GPIO_PIN_2, TIM_CHANNEL_3, run_forward),
+			turn_left(GPIOA, GPIO_PIN_3, TIM_CHANNEL_4, run_forward);
 
-	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, GPIO_PIN_RESET);
+	MotorDC drive(run_forward, run_backward), turn(turn_right, turn_left);
 
-	GPIO_InitTypeDef GPIO_InitStruct;
-
-	GPIO_InitStruct.Pin = GPIO_PIN_1;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
-	PWM motor1(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 80000);
-
-	for (int i = 50; i > 0; i -= 10){
-		blink(led, i / 10);
-		motor1.set(i);
-		delay(1000);
-	}
-
-	motor1.stop();
-
-	//MotorDC drive(GPIO_PIN_0, GPIO_PIN_1), rotate(GPIO_PIN_2, GPIO_PIN_3);
+	drive.run(50);
+	delay(1000);
+	drive.run(-50);
+	delay(1000);
+	drive.stop();
 
 	led.on();
 

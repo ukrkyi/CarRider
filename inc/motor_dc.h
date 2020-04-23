@@ -3,18 +3,19 @@
 #define MOTORDC_H
 
 #include <stm32f4xx_hal.h>
+#include "pwm.h"
 
 enum Direction {
-	FORWARD = 0,
-	BACKWARD
+	FORWARD = 100,
+	BACKWARD = -100
 };
 
 class MotorDC
 {
-	uint16_t posPin, negPin;
+	PWM &forward, &backward;
 public:
-	MotorDC(uint16_t posPin, uint16_t negPin);
-	void run(Direction dir);
+	MotorDC(PWM& forward, PWM& backward);
+	void run(int speed);
 	void stop();
 	~MotorDC();
 };
