@@ -2,6 +2,7 @@
 #include <stm32f4xx_hal.h>
 
 #include "motor_dc.h"
+#include "pwm.h"
 #include "ultrasonic.h"
 #include "led.h"
 
@@ -12,13 +13,16 @@ static inline void delay(unsigned ms) {
 	for (; i < limit; i++) __NOP();
 }
 
-void blink(LED& led, int n) {
+void blink(LED& led, int n, int wait_till = 0) {
+	const unsigned t = 250;
 	for (int i = 0; i < n; i++) {
 		led.on();
-		delay(250);
+		delay(t);
 		led.off();
-		delay(250);
+		delay(t);
 	}
+	if (wait_till > n)
+		delay(t * 2 * (wait_till - n));
 }
 
 LED led;
@@ -37,7 +41,13 @@ int main()
 	delay(2000);
 	led.off();
 
-	MotorDC drive(GPIO_PIN_0, GPIO_PIN_1), rotate(GPIO_PIN_2, GPIO_PIN_3);
+	PWM run_forward(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 160000),
+			run_backward(GPIOA, GPIO_PIN_1, TIM_CHANNEL_2, run_forward),
+			turn_right(GPIOA, GPIO_PIN_2, TIM_CHANNEL_3, run_forward),
+			turn_left(GPIOA, GPIO_PIN_3, TIM_CHANNEL_4, run_forward);
+
+	MotorDC drive(run_forward, run_backward), turn(turn_right, turn_left);
+
 	Ultrasonic sensor(GPIOB, GPIO_PIN_0, GPIOA, GPIO_PIN_15,
 			  TIM3, TIM_CHANNEL_3, TIM2, TIM_CHANNEL_1, 100000);
 
