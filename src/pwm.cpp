@@ -1,16 +1,10 @@
 /* (c) 2020 ukrkyi */
 #include "pwm.h"
 
-PWM::PWM(GPIO_TypeDef *port, uint16_t pin, TIM_TypeDef *timer, uint32_t channel, uint32_t frequency)
-	: channel(channel)
+void PWM::InitPin(GPIO_TypeDef *port, uint16_t pin)
 {
 	if (port == GPIOA)
 		__HAL_RCC_GPIOA_CLK_ENABLE();
-	else
-		while(1);
-
-	if (timer == TIM5)
-		__HAL_RCC_TIM5_CLK_ENABLE();
 	else
 		while(1);
 
@@ -22,38 +16,70 @@ PWM::PWM(GPIO_TypeDef *port, uint16_t pin, TIM_TypeDef *timer, uint32_t channel,
 	gpio.Speed = GPIO_SPEED_FREQ_MEDIUM;
 	gpio.Alternate = GPIO_AF2_TIM5;
 	HAL_GPIO_Init(port, &gpio);
+}
 
-	htim.Instance = timer;
-	htim.Init.Prescaler = SystemCoreClock/(frequency *= 100) - 1;
-	htim.Init.CounterMode = TIM_COUNTERMODE_UP;
-	htim.Init.Period = 99;
-	htim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-	htim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-	HAL_TIM_PWM_Init(&htim);
-
+void PWM::InitChannel()
+{
 	TIM_OC_InitTypeDef chConf;
 	chConf.OCMode = TIM_OCMODE_PWM1;
 	chConf.Pulse = 0;
 	chConf.OCPolarity = TIM_OCPOLARITY_HIGH;
 	chConf.OCFastMode = TIM_OCFAST_DISABLE;
-	HAL_TIM_PWM_ConfigChannel(&htim, &chConf, channel);
+	HAL_TIM_PWM_ConfigChannel(htim, &chConf, channel);
 
-	HAL_TIM_PWM_Start(&htim, channel);
-	TIM_CCxChannelCmd(htim.Instance, channel, TIM_CCx_DISABLE);
+	HAL_TIM_PWM_Start(htim, channel);
+	TIM_CCxChannelCmd(htim->Instance, channel, TIM_CCx_DISABLE);
+}
+
+PWM::PWM(GPIO_TypeDef *port, uint16_t pin, TIM_TypeDef *timer, uint32_t channel, uint32_t frequency)
+	: channel(channel)
+{
+	InitPin(port, pin);
+
+	// Manage timer
+
+	if (timer == TIM5)
+		__HAL_RCC_TIM5_CLK_ENABLE();
+	else
+		while(1);
+
+	htim_base.Instance = timer;
+	htim_base.Init.Prescaler = SystemCoreClock/(frequency *= 100) - 1;
+	htim_base.Init.CounterMode = TIM_COUNTERMODE_UP;
+	htim_base.Init.Period = 99;
+	htim_base.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+	htim_base.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+	HAL_TIM_PWM_Init(&htim_base);
+
+	htim = &htim_base;
+
+	InitChannel();
+}
+
+PWM::PWM(GPIO_TypeDef *port, uint16_t pin, uint32_t channel, PWM &timerBase) :
+	channel(channel)
+{
+	InitPin(port, pin);
+
+	htim_base.Instance = NULL;
+	htim = timerBase.htim;
+
+	InitChannel();
 }
 
 void PWM::set(unsigned percent)
 {
-	__HAL_TIM_SET_COMPARE(&htim, channel, percent);
-	TIM_CCxChannelCmd(htim.Instance, channel, TIM_CCx_ENABLE);
+	__HAL_TIM_SET_COMPARE(htim, channel, percent);
+	TIM_CCxChannelCmd(htim->Instance, channel, TIM_CCx_ENABLE);
 }
 
 void PWM::stop()
 {
-	TIM_CCxChannelCmd(htim.Instance, channel, TIM_CCx_DISABLE);
+	TIM_CCxChannelCmd(htim->Instance, channel, TIM_CCx_DISABLE);
 }
 
 PWM::~PWM()
 {
-	HAL_TIM_PWM_DeInit(&htim);
+	if (htim_base.Instance != NULL)
+		HAL_TIM_PWM_DeInit(&htim_base);
 }
