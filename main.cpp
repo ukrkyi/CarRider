@@ -12,13 +12,16 @@ static inline void delay(unsigned ms) {
 	for (; i < limit; i++) __NOP();
 }
 
-void blink(LED& led, int n) {
+void blink(LED& led, int n, int wait_till = 0) {
+	const unsigned t = 250;
 	for (int i = 0; i < n; i++) {
 		led.on();
-		delay(250);
+		delay(t);
 		led.off();
-		delay(250);
+		delay(t);
 	}
+	if (wait_till > n)
+		delay(t * 2 * (wait_till - n));
 }
 
 int main()
