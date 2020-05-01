@@ -16,6 +16,31 @@ CppApplication {
         "CMSIS/inc/system_stm32f4xx.h",
         "CMSIS/src/startup_stm32f401xc.s",
         "CMSIS/src/system_stm32f4xx.c",
+        "FreeRTOS/inc/FreeRTOS.h",
+        "FreeRTOS/inc/StackMacros.h",
+        "FreeRTOS/inc/atomic.h",
+        "FreeRTOS/inc/croutine.h",
+        "FreeRTOS/inc/deprecated_definitions.h",
+        "FreeRTOS/inc/event_groups.h",
+        "FreeRTOS/inc/list.h",
+        "FreeRTOS/inc/message_buffer.h",
+        "FreeRTOS/inc/mpu_prototypes.h",
+        "FreeRTOS/inc/mpu_wrappers.h",
+        "FreeRTOS/inc/portable.h",
+        "FreeRTOS/inc/projdefs.h",
+        "FreeRTOS/inc/queue.h",
+        "FreeRTOS/inc/semphr.h",
+        "FreeRTOS/inc/stack_macros.h",
+        "FreeRTOS/inc/stream_buffer.h",
+        "FreeRTOS/inc/task.h",
+        "FreeRTOS/inc/timers.h",
+        "FreeRTOS/portable/GCC_ARM_CM4F/port.c",
+        "FreeRTOS/portable/GCC_ARM_CM4F/portmacro.h",
+        "FreeRTOS/src/event_groups.c",
+        "FreeRTOS/src/list.c",
+        "FreeRTOS/src/queue.c",
+        "FreeRTOS/src/tasks.c",
+        "FreeRTOS/src/timers.c",
         "HAL/inc/Legacy/stm32_hal_legacy.h",
         "HAL/inc/stm32f4xx_hal.h",
         "HAL/inc/stm32f4xx_hal_cortex.h",
@@ -38,6 +63,7 @@ CppApplication {
         "HAL/src/stm32f4xx_hal_rcc.c",
         "HAL/src/stm32f4xx_hal_tim.c",
         "STM32F401CCUx_FLASH.ld",
+        "inc/FreeRTOSConfig.h",
         "inc/led.h",
         "inc/motor_dc.h",
         "inc/pwm.h",
@@ -85,7 +111,7 @@ CppApplication {
 
     cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER']
     cpp.includePaths: ["inc"]
-    cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc"]
+    cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 
     cpp.warningLevel: 'all'
     cpp.positionIndependentCode: false

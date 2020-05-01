@@ -8,39 +8,22 @@
 
 #include "system.h"
 
-static inline void delay(unsigned ms) {
-	volatile unsigned i = 0;
-	unsigned freq = SystemCoreClock/1000; // kHz
-	unsigned limit = ms*freq/12;
-	for (; i < limit; i++) __NOP();
-}
-
-void blink(LED& led, int n, int wait_till = 0) {
-	const unsigned t = 250;
-	for (int i = 0; i < n; i++) {
-		led.on();
-		delay(t);
-		led.off();
-		delay(t);
-	}
-	if (wait_till > n)
-		delay(t * 2 * (wait_till - n));
-}
-
+#include "FreeRTOS.h"
+#include "task.h"
 
 extern "C" void TIM2_IRQHandler(void) {
 	Ultrasonic::getInstance().processEcho(0);
 }
 
-int main()
-{
-	SystemConfig();
+#define STACK_SIZE	configMINIMAL_STACK_SIZE
+#define TASK_NUM	1
 
-	LED &led = LED::getInstance();
+StaticTask_t xTaskBuffer[TASK_NUM];
 
-	led.on();
-	delay(2000);
-	led.off();
+StackType_t xStack[TASK_NUM][ STACK_SIZE ];
+
+void mainTask(void * parameters) {
+	LED& led = LED::getInstance();
 
 	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
 				&turn = MotorDC::getInstance(MOTOR_TURN);
@@ -48,6 +31,7 @@ int main()
 	Ultrasonic & range = Ultrasonic::getInstance();
 
 	NVIC_EnableIRQ(TIM2_IRQn);
+	NVIC_SetPriority(TIM2_IRQn, 5);
 
 	range.start();
 
@@ -68,6 +52,23 @@ int main()
 			led.on(); // error
 			drive.stop();
 		}
-		delay(100);
+		vTaskDelay(100);
 	}
+}
+
+int main()
+{
+	SystemConfig();
+
+	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, xStack[0], xTaskBuffer);
+
+	/* Start the scheduler. */
+	vTaskStartScheduler();
+
+	/* If all is well, the scheduler will now be running, and the following line
+	will never be reached.  If the following line does execute, then there was
+	insufficient FreeRTOS heap memory available for the idle and/or timer tasks
+	to be created.  See the memory management section on the FreeRTOS web site
+	for more details. */
+	for( ;; );
 }

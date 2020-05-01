@@ -9,6 +9,7 @@ class LED
 	~LED();
 public:
 	LED(const LED&) = delete;
+	void blink(unsigned n, unsigned wait_till = 0);
 	void on();
 	void off();
 	void toggle();

@@ -3,6 +3,9 @@
 
 #include <stm32f4xx_hal.h>
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 LED::LED()
 {
 	__HAL_RCC_GPIOC_CLK_ENABLE();
@@ -19,6 +22,19 @@ LED::LED()
 LED::~LED()
 {
 	HAL_GPIO_DeInit(GPIOC, GPIO_PIN_13);
+}
+
+void LED::blink(unsigned n, unsigned wait_till)
+{
+	const unsigned t = 250;
+	for (unsigned i = 0; i < n; i++) {
+		on();
+		vTaskDelay(t);
+		off();
+		vTaskDelay(t);
+	}
+	if (wait_till > n)
+		vTaskDelay(t * 2 * (wait_till - n));
 }
 
 void LED::on()

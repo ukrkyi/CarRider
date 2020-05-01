@@ -5,6 +5,9 @@
 
 #include "system.h"
 
+#include "FreeRTOS.h"
+#include "task.h"
+
 void SystemClock_Config(void)
 {
 	/* Can't use complex HAL functions here because they depend on tick interrupt working
@@ -83,9 +86,43 @@ void SystemConfig() {
 	SystemClock_Config();
 }
 
+
+void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
+				    StackType_t **ppxIdleTaskStackBuffer,
+				    uint32_t *pulIdleTaskStackSize )
+{
+	static StaticTask_t xIdleTaskTCB;
+	static StackType_t uxIdleTaskStack[ configMINIMAL_STACK_SIZE ];
+
+	*ppxIdleTaskTCBBuffer = &xIdleTaskTCB;
+	*ppxIdleTaskStackBuffer = uxIdleTaskStack;
+	*pulIdleTaskStackSize = configMINIMAL_STACK_SIZE;
+}
+
+void vApplicationGetTimerTaskMemory( StaticTask_t **ppxTimerTaskTCBBuffer,
+				     StackType_t **ppxTimerTaskStackBuffer,
+				     uint32_t *pulTimerTaskStackSize )
+{
+	static StaticTask_t xTimerTaskTCB;
+	static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
+
+	*ppxTimerTaskTCBBuffer = &xTimerTaskTCB;
+	*ppxTimerTaskStackBuffer = uxTimerTaskStack;
+	*pulTimerTaskStackSize = configTIMER_TASK_STACK_DEPTH;
+}
+
+void vApplicationStackOverflowHook( TaskHandle_t xTask,
+				    signed char *pcTaskName )
+{
+	UNUSED(xTask);
+	UNUSED(pcTaskName);
+	while(1);
+}
+
 void assert_failed(uint8_t *file, uint32_t line) {
 	UNUSED(file);
 	UNUSED(line);
+	taskDISABLE_INTERRUPTS();
 	for( ;; );
 }
 
