@@ -6,6 +6,8 @@
 #include "ultrasonic.h"
 #include "led.h"
 
+#include "system.h"
+
 static inline void delay(unsigned ms) {
 	volatile unsigned i = 0;
 	unsigned freq = SystemCoreClock/1000; // kHz
@@ -36,6 +38,7 @@ extern "C" void TIM2_IRQHandler(void) {
 
 int main()
 {
+	SystemConfig();
 
 	led.on();
 	delay(2000);

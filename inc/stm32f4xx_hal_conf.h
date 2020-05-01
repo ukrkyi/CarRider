@@ -82,9 +82,9 @@
 //#define HAL_EXTI_MODULE_ENABLED
 #define HAL_DMA_MODULE_ENABLED
 #define HAL_RCC_MODULE_ENABLED
-//#define HAL_FLASH_MODULE_ENABLED
-//#define HAL_PWR_MODULE_ENABLED
-//#define HAL_CORTEX_MODULE_ENABLED
+#define HAL_FLASH_MODULE_ENABLED
+#define HAL_PWR_MODULE_ENABLED
+#define HAL_CORTEX_MODULE_ENABLED
 
 /* ########################## HSE/HSI Values adaptation ##################### */
 /**
@@ -156,7 +156,9 @@
   * @brief Uncomment the line below to expanse the "assert_param" macro in the 
   *        HAL drivers code
   */
-/* #define USE_FULL_ASSERT    1U */
+#ifndef NDEBUG
+#define USE_FULL_ASSERT    1U
+#endif
 
 /* ################## Ethernet peripheral configuration ##################### */
 
