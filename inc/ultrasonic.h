@@ -8,6 +8,7 @@ class Ultrasonic
 {
 	TIM_HandleTypeDef trigTim, echoTim;
 	uint32_t trigCh, echoCh;
+	volatile float distance;
 	Ultrasonic(GPIO_TypeDef * trigPort, uint16_t trigPin,
 		   GPIO_TypeDef * echoPort, uint16_t echoPin,
 		   TIM_TypeDef * trigTimer, uint32_t trigChannel,
@@ -18,7 +19,8 @@ public:
 	Ultrasonic() = delete;
 	void start();
 	void stop();
-	float processEcho(int distanceTravelled);
+	void processEcho(float avgSpeed); // meters per us
+	float getDistance() const;
 };
 
 #endif // ULTRASONIC_H

@@ -3,8 +3,13 @@
 
 #define COUNTER_FREQ 1000000
 
+float Ultrasonic::getDistance() const
+{
+	return distance;
+}
+
 Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *echoPort, uint16_t echoPin, TIM_TypeDef *trigTimer, uint32_t trigChannel, TIM_TypeDef *echoTimer, uint32_t echoChannel, uint32_t period)
-	: trigCh(trigChannel), echoCh(echoChannel)
+	: trigCh(trigChannel), echoCh(echoChannel), distance(0)
 {
 	if (trigPort == GPIOA || echoPort == GPIOA)
 		__HAL_RCC_GPIOA_CLK_ENABLE();
@@ -108,7 +113,7 @@ void Ultrasonic::stop()
 	HAL_TIM_IC_Stop_IT(&echoTim, echoCh);
 }
 
-float Ultrasonic::processEcho(int distanceTravelled)
+void Ultrasonic::processEcho(float avgSpeed)
 {
 	if (echoCh == TIM_CHANNEL_1 &&
 	    __HAL_TIM_GET_IT_SOURCE(&echoTim, TIM_IT_CC1)) {
@@ -121,5 +126,5 @@ float Ultrasonic::processEcho(int distanceTravelled)
 	uint32_t us = __HAL_TIM_GET_COMPARE(&echoTim, echoCh);
 	const uint32_t temp = +20;
 	const float soundSpeed = ((float)(331300+596*temp))/1000000;
-	return (us*soundSpeed - distanceTravelled)/2;
+	distance = us*(soundSpeed - avgSpeed)/2;
 }

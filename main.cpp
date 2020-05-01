@@ -27,12 +27,9 @@ void blink(LED& led, int n, int wait_till = 0) {
 		delay(t * 2 * (wait_till - n));
 }
 
-Ultrasonic * range = NULL;
-volatile float distance = 0;
 
 extern "C" void TIM2_IRQHandler(void) {
-	if (range != NULL)
-		distance = range->processEcho(0);
+	Ultrasonic::getInstance().processEcho(0);
 }
 
 int main()
@@ -48,17 +45,18 @@ int main()
 	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
 				&turn = MotorDC::getInstance(MOTOR_TURN);
 
-	Ultrasonic & sensor = Ultrasonic::getInstance();
+	Ultrasonic & range = Ultrasonic::getInstance();
 
 	NVIC_EnableIRQ(TIM2_IRQn);
-	range = &sensor;
 
-	sensor.start();
+	range.start();
 
 	const float refDistance = 200; // 0.1m
+	static float distance;
 
 	while(1) {
 		led.off();
+		distance = range.getDistance();
 		if (distance - refDistance > 250)
 			drive.run(FORWARD);
 		else if (distance > 1) {
