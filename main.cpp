@@ -7,6 +7,7 @@
 #include "led.h"
 
 #include "system.h"
+#include "eventgroup.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -35,11 +36,14 @@ void mainTask(void * parameters) {
 
 	range.start();
 
+	EventGroup &sensors = EventGroup::getInstance();
+
 	const float refDistance = 100; // 0.1m
 	static float distance;
 
 	while(1) {
 		led.off();
+		sensors.wait(ULTRASONIC_MEASUREMENT_COMPLETED);
 		distance = range.getDistance();
 		if (distance - refDistance > 100) {
 			drive.run((distance - refDistance >= 500) ? 50 : (int) (distance - refDistance) / 10);
@@ -52,7 +56,6 @@ void mainTask(void * parameters) {
 			led.on(); // error
 			drive.stop();
 		}
-		vTaskDelay(100);
 	}
 }
 

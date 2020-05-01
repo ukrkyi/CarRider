@@ -1,6 +1,8 @@
 /* (c) 2020 ukrkyi */
 #include "ultrasonic.h"
 
+#include "eventgroup.h"
+
 #define COUNTER_FREQ 1000000
 
 float Ultrasonic::getDistance() const
@@ -127,4 +129,6 @@ void Ultrasonic::processEcho(float avgSpeed)
 	const uint32_t temp = +20;
 	const float soundSpeed = ((float)(331300+596*temp))/1000000;
 	distance = us*(soundSpeed - avgSpeed)/2;
+	EventGroup::getInstance().notify(ULTRASONIC_MEASUREMENT_COMPLETED);
+	// We ignore output value since we can't do anything about it for now
 }
