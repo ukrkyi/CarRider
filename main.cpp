@@ -51,17 +51,17 @@ int main()
 
 	range.start();
 
-	const float refDistance = 200; // 0.1m
+	const float refDistance = 100; // 0.1m
 	static float distance;
 
 	while(1) {
 		led.off();
 		distance = range.getDistance();
-		if (distance - refDistance > 250)
-			drive.run(FORWARD);
-		else if (distance > 1) {
-			if (distance - refDistance < -100)
-				drive.run(BACKWARD);
+		if (distance - refDistance > 100) {
+			drive.run((distance - refDistance >= 500) ? 50 : (int) (distance - refDistance) / 10);
+		} else if (distance > 1) {
+			if (distance - refDistance < -50)
+				drive.run(-30);
 			else
 				drive.stop();
 		} else {
