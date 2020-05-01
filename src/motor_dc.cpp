@@ -8,6 +8,20 @@ MotorDC::MotorDC(PWM& forward, PWM& backward) :
 	backward.stop();
 }
 
+MotorDC &MotorDC::getInstance(Motor motor)
+{
+	static MotorDC drive(PWM::getInstance(MOTOR_1_FW), PWM::getInstance(MOTOR_1_BW)),
+			turn(PWM::getInstance(MOTOR_2_FW), PWM::getInstance(MOTOR_2_BW));
+	switch (motor) {
+	case MOTOR_DRIVE:
+		return drive;
+	case MOTOR_TURN:
+		return turn;
+	default:
+		while(1);
+	}
+}
+
 void MotorDC::run(int speed)
 {
 	if (speed > 0) {

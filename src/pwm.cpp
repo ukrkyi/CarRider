@@ -78,6 +78,26 @@ void PWM::stop()
 	TIM_CCxChannelCmd(htim->Instance, channel, TIM_CCx_DISABLE);
 }
 
+PWM &PWM::getInstance(PWMChannel channel)
+{
+	static PWM pwm_motor_1(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 160000),
+		pwm_motor_2(GPIOA, GPIO_PIN_1, TIM_CHANNEL_2, pwm_motor_1),
+		pwm_motor_3(GPIOA, GPIO_PIN_2, TIM_CHANNEL_3, pwm_motor_1),
+		pwm_motor_4(GPIOA, GPIO_PIN_3, TIM_CHANNEL_4, pwm_motor_1);
+	switch (channel) {
+	case MOTOR_1_FW:
+		return pwm_motor_1;
+	case MOTOR_1_BW:
+		return pwm_motor_2;
+	case MOTOR_2_FW:
+		return pwm_motor_3;
+	case MOTOR_2_BW:
+		return pwm_motor_4;
+	default:
+		while(1);
+	}
+}
+
 PWM::~PWM()
 {
 	if (htim_base.Instance != NULL)

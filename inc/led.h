@@ -5,13 +5,15 @@
 
 class LED
 {
-public:
 	LED();
 	~LED();
+public:
+	LED(const LED&) = delete;
 	void on();
 	void off();
 	void toggle();
 	bool is_on();
+	static LED& getInstance();
 };
 
 #endif // LED_H

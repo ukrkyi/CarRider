@@ -40,3 +40,9 @@ bool LED::is_on()
 {
 	return HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_RESET;
 }
+
+LED &LED::getInstance()
+{
+	static LED led;
+	return led;
+}

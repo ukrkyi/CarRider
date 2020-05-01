@@ -8,11 +8,14 @@ class Ultrasonic
 {
 	TIM_HandleTypeDef trigTim, echoTim;
 	uint32_t trigCh, echoCh;
-public:
 	Ultrasonic(GPIO_TypeDef * trigPort, uint16_t trigPin,
 		   GPIO_TypeDef * echoPort, uint16_t echoPin,
 		   TIM_TypeDef * trigTimer, uint32_t trigChannel,
 		   TIM_TypeDef * echoTimer, uint32_t echoChannel, uint32_t period);
+public:
+	static Ultrasonic& getInstance();
+	Ultrasonic(const Ultrasonic&) = delete;
+	Ultrasonic() = delete;
 	void start();
 	void stop();
 	float processEcho(int distanceTravelled);

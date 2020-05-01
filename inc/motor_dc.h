@@ -10,11 +10,20 @@ enum Direction {
 	BACKWARD = -100
 };
 
+enum Motor {
+	MOTOR_DRIVE,
+	MOTOR_TURN,
+	MOTOR_NUM
+};
+
 class MotorDC
 {
 	PWM &forward, &backward;
-public:
 	MotorDC(PWM& forward, PWM& backward);
+public:
+	static MotorDC& getInstance(Motor motor);
+	MotorDC(const MotorDC&) = delete;
+	MotorDC() = delete;
 	void run(int speed);
 	void stop();
 	~MotorDC();

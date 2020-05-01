@@ -27,7 +27,6 @@ void blink(LED& led, int n, int wait_till = 0) {
 		delay(t * 2 * (wait_till - n));
 }
 
-LED led;
 Ultrasonic * range = NULL;
 volatile float distance = 0;
 
@@ -40,19 +39,16 @@ int main()
 {
 	SystemConfig();
 
+	LED &led = LED::getInstance();
+
 	led.on();
 	delay(2000);
 	led.off();
 
-	PWM run_forward(GPIOA, GPIO_PIN_0, TIM5, TIM_CHANNEL_1, 160000),
-			run_backward(GPIOA, GPIO_PIN_1, TIM_CHANNEL_2, run_forward),
-			turn_right(GPIOA, GPIO_PIN_2, TIM_CHANNEL_3, run_forward),
-			turn_left(GPIOA, GPIO_PIN_3, TIM_CHANNEL_4, run_forward);
+	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
+				&turn = MotorDC::getInstance(MOTOR_TURN);
 
-	MotorDC drive(run_forward, run_backward), turn(turn_right, turn_left);
-
-	Ultrasonic sensor(GPIOB, GPIO_PIN_0, GPIOA, GPIO_PIN_15,
-			  TIM3, TIM_CHANNEL_3, TIM2, TIM_CHANNEL_1, 100000);
+	Ultrasonic & sensor = Ultrasonic::getInstance();
 
 	NVIC_EnableIRQ(TIM2_IRQn);
 	range = &sensor;

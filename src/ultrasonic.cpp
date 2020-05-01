@@ -89,6 +89,13 @@ Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *e
 	HAL_TIM_IC_ConfigChannel(&echoTim, &icConf, echoChannel);
 }
 
+Ultrasonic &Ultrasonic::getInstance()
+{
+	static Ultrasonic sensor(GPIOB, GPIO_PIN_0, GPIOA, GPIO_PIN_15,
+			  TIM3, TIM_CHANNEL_3, TIM2, TIM_CHANNEL_1, 100000);
+	return sensor;
+}
+
 void Ultrasonic::start()
 {
 	HAL_TIM_PWM_Start(&trigTim, trigCh);
