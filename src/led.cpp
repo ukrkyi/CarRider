@@ -10,6 +10,8 @@ LED::LED()
 {
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
+	off();
+
 	GPIO_InitTypeDef GPIO_InitStruct;
 
 	GPIO_InitStruct.Pin = GPIO_PIN_13;
