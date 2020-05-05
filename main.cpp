@@ -9,22 +9,26 @@
 #include "system.h"
 #include "eventgroup.h"
 
+#include "uart.h"
+
 #include "FreeRTOS.h"
 #include "task.h"
 
 
-#define STACK_SIZE	configMINIMAL_STACK_SIZE
-#define TASK_NUM	1
+#include <stdio.h>
+
+#define STACK_SIZE	configMINIMAL_STACK_SIZE * 2
+#define TASK_NUM	2
 
 StaticTask_t xTaskBuffer[TASK_NUM];
 
 StackType_t xStack[TASK_NUM][ STACK_SIZE ];
 
 void mainTask(void * parameters) {
-	LED& led = LED::getInstance();
+//	LED& led = LED::getInstance();
 
-	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
-				&turn = MotorDC::getInstance(MOTOR_TURN);
+//	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
+//				&turn = MotorDC::getInstance(MOTOR_TURN);
 
 	Ultrasonic & range = Ultrasonic::getInstance();
 
@@ -32,25 +36,19 @@ void mainTask(void * parameters) {
 	range.start();
 
 	EventGroup &sensors = EventGroup::getInstance();
+	UART &uart = UART::getInstance();
 
-	const float refDistance = 100; // 0.1m
 	static float distance;
+	static char buf[10];
+	int size;
 
 	while(1) {
-		led.off();
 		sensors.wait(ULTRASONIC_MEASUREMENT_COMPLETED);
 		distance = range.getDistance();
-		if (distance - refDistance > 100) {
-			drive.run((distance - refDistance >= 500) ? 50 : (int) (distance - refDistance) / 10);
-		} else if (distance > 1) {
-			if (distance - refDistance < -50)
-				drive.run(-30);
-			else
-				drive.stop();
-		} else {
-			led.on(); // error
-			drive.stop();
-		}
+		size = snprintf(buf, 10, "%d.%d ", (int) distance, (int) (distance * 10) % 10);
+		uart.send((uint8_t *) buf, size > 10 ? 10 : size);
+		uart.send((const uint8_t *) "mm\n", 3);
+		vTaskDelay(500);
 	}
 }
 

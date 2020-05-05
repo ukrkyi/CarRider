@@ -43,6 +43,7 @@ CppApplication {
         "FreeRTOS/src/tasks.c",
         "FreeRTOS/src/timers.c",
         "HAL/inc/Legacy/stm32_hal_legacy.h",
+        "HAL/inc/stm32_assert.h",
         "HAL/inc/stm32f4xx_hal.h",
         "HAL/inc/stm32f4xx_hal_cortex.h",
         "HAL/inc/stm32f4xx_hal_def.h",
@@ -59,10 +60,15 @@ CppApplication {
         "HAL/inc/stm32f4xx_hal_rcc_ex.h",
         "HAL/inc/stm32f4xx_hal_tim.h",
         "HAL/inc/stm32f4xx_hal_tim_ex.h",
+        "HAL/inc/stm32f4xx_ll_bus.h",
+        "HAL/inc/stm32f4xx_ll_dma.h",
         "HAL/inc/stm32f4xx_ll_rcc.h",
+        "HAL/inc/stm32f4xx_ll_usart.h",
         "HAL/src/stm32f4xx_hal_gpio.c",
         "HAL/src/stm32f4xx_hal_rcc.c",
         "HAL/src/stm32f4xx_hal_tim.c",
+        "HAL/src/stm32f4xx_ll_rcc.c",
+        "HAL/src/stm32f4xx_ll_usart.c",
         "STM32F401CCUx_FLASH.ld",
         "inc/FreeRTOSConfig.h",
         "inc/led.h",
@@ -70,6 +76,7 @@ CppApplication {
         "inc/pwm.h",
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
+        "inc/uart.h",
         "inc/ultrasonic.h",
         "interrupts.cpp",
         "main.cpp",
@@ -84,6 +91,7 @@ CppApplication {
         "src/motor_dc.cpp",
         "src/pwm.cpp",
         "src/system.c",
+        "src/uart.cpp",
         "src/ultrasonic.cpp",
     ]
 
@@ -118,7 +126,7 @@ CppApplication {
         qbs.optimization: "small"
     }
 
-    cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER']
+    cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER', 'USE_FULL_LL_DRIVER']
     cpp.includePaths: ["inc", "os_drivers/inc"]
     cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 
