@@ -7,6 +7,7 @@
 
 enum Event {
 	ULTRASONIC_MEASUREMENT_COMPLETED = 0x1,
+	ESP_REPLY_RECEIVED = 0x2,
 };
 
 class EventGroup

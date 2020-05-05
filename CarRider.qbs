@@ -64,7 +64,6 @@ CppApplication {
         "HAL/src/stm32f4xx_hal_tim.c",
         "STM32F401CCUx_FLASH.ld",
         "inc/FreeRTOSConfig.h",
-        "inc/eventgroup.h",
         "inc/led.h",
         "inc/motor_dc.h",
         "inc/pwm.h",
@@ -72,7 +71,13 @@ CppApplication {
         "inc/system.h",
         "inc/ultrasonic.h",
         "main.cpp",
-        "src/eventgroup.cpp",
+        "os_drivers/inc/eventgroup.h",
+        "os_drivers/inc/mutex.h",
+        "os_drivers/inc/queue.hpp",
+        "os_drivers/inc/semaphore.h",
+        "os_drivers/src/eventgroup.cpp",
+        "os_drivers/src/mutex.cpp",
+        "os_drivers/src/semaphore.cpp",
         "src/led.cpp",
         "src/motor_dc.cpp",
         "src/pwm.cpp",
@@ -112,7 +117,7 @@ CppApplication {
     }
 
     cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER']
-    cpp.includePaths: ["inc"]
+    cpp.includePaths: ["inc", "os_drivers/inc"]
     cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 
     cpp.warningLevel: 'all'
