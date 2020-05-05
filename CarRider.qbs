@@ -71,6 +71,7 @@ CppApplication {
         "HAL/src/stm32f4xx_ll_usart.c",
         "STM32F401CCUx_FLASH.ld",
         "inc/FreeRTOSConfig.h",
+        "inc/buffer.h",
         "inc/led.h",
         "inc/motor_dc.h",
         "inc/pwm.h",

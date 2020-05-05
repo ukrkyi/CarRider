@@ -14,6 +14,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
+#include "buffer.h"
 
 #include <stdio.h>
 
@@ -52,11 +53,46 @@ void mainTask(void * parameters) {
 	}
 }
 
+void wifiTask(void * parameters) {
+	static uint8_t queue_buffer[sizeof (size_t) * 5];
+	static Buffer<10> rxBuffer;
+
+	LED& led = LED::getInstance();
+	UART &uart = UART::getInstance();
+
+	Queue<size_t> q(queue_buffer, 5);
+
+	bool err = false;
+
+	size_t pos;
+
+	uart.startRx(rxBuffer, rxBuffer.length(), q);
+
+	while(1) {
+		pos = q.take(err);
+		if (err)
+			while(1);
+
+		Buffer<10>::chunk data = rxBuffer.newData(pos, &err);
+		while (data.length() != 0) {
+			if (data.beginsWith("+")) {
+				led.on();
+			} else if (data.beginsWith("-")){
+				led.off();
+			} else if (data.beginsWith("123")) {
+				uart.send((const uint8_t *)"123\n", 4);
+			}
+			rxBuffer.next(data, 1);
+		}
+	}
+}
+
 int main()
 {
 	SystemConfig();
 
-	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, xStack[0], xTaskBuffer);
+	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, xStack[0], xTaskBuffer);
+	xTaskCreateStatic(wifiTask, "wifi", STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, xStack[1], xTaskBuffer + 1);
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
