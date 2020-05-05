@@ -31,8 +31,6 @@ void mainTask(void * parameters) {
 
 	Ultrasonic & range = Ultrasonic::getInstance();
 
-	NVIC_EnableIRQ(TIM2_IRQn);
-	NVIC_SetPriority(TIM2_IRQn, 5);
 
 	range.start();
 

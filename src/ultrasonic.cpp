@@ -94,6 +94,8 @@ Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *e
 	icConf.ICPrescaler= TIM_ICPSC_DIV1;
 	icConf.ICFilter   = 0x02;
 	HAL_TIM_IC_ConfigChannel(&echoTim, &icConf, echoChannel);
+
+	NVIC_SetPriority(TIM2_IRQn, 6);
 }
 
 Ultrasonic &Ultrasonic::getInstance()
@@ -105,6 +107,8 @@ Ultrasonic &Ultrasonic::getInstance()
 
 void Ultrasonic::start()
 {
+	NVIC_EnableIRQ(TIM2_IRQn);
+
 	HAL_TIM_PWM_Start(&trigTim, trigCh);
 	HAL_TIM_IC_Start_IT(&echoTim, echoCh);
 }
@@ -113,6 +117,8 @@ void Ultrasonic::stop()
 {
 	HAL_TIM_PWM_Stop(&trigTim, trigCh);
 	HAL_TIM_IC_Stop_IT(&echoTim, echoCh);
+
+	NVIC_DisableIRQ(TIM2_IRQn);
 }
 
 void Ultrasonic::processEcho(float avgSpeed)
