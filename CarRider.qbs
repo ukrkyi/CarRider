@@ -140,16 +140,19 @@ CppApplication {
         "-mcpu=cortex-m4",
         "-mthumb",
         "-mfloat-abi=hard",
+        "-fno-exceptions"
     ]
 
     cpp.linkerFlags: [
         "--gc-sections",
         "--print-memory-usage",
-        "--undefined=uxTopUsedPriority"
+        "--undefined=uxTopUsedPriority",
+        "--wrap=malloc",
+       // "--wrap=_malloc_r" MB we'll need this.. at some time
     ]
 
     cpp.driverLinkerFlags: [
-        //"--specs=nano.specs",
+        "-specs=nano.specs",
         "-specs=nosys.specs"
     ]
 
