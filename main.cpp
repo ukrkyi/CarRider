@@ -12,9 +12,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 
-extern "C" void TIM2_IRQHandler(void) {
-	Ultrasonic::getInstance().processEcho(0);
-}
 
 #define STACK_SIZE	configMINIMAL_STACK_SIZE
 #define TASK_NUM	1

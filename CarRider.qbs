@@ -71,6 +71,7 @@ CppApplication {
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
         "inc/ultrasonic.h",
+        "interrupts.cpp",
         "main.cpp",
         "os_drivers/inc/eventgroup.h",
         "os_drivers/inc/mutex.h",
