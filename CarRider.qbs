@@ -36,6 +36,7 @@ CppApplication {
         "FreeRTOS/inc/timers.h",
         "FreeRTOS/portable/GCC_ARM_CM4F/port.c",
         "FreeRTOS/portable/GCC_ARM_CM4F/portmacro.h",
+        "FreeRTOS/src/FreeRTOS-openocd.c",
         "FreeRTOS/src/event_groups.c",
         "FreeRTOS/src/list.c",
         "FreeRTOS/src/queue.c",
@@ -133,6 +134,8 @@ CppApplication {
 
     cpp.linkerFlags: [
         "--gc-sections",
+        "--print-memory-usage",
+        "--undefined=uxTopUsedPriority"
     ]
 
     cpp.driverLinkerFlags: [
