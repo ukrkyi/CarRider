@@ -71,15 +71,20 @@ CppApplication {
         "HAL/src/stm32f4xx_ll_rcc.c",
         "HAL/src/stm32f4xx_ll_usart.c",
         "STM32F401CCUx_FLASH.ld",
+        "hw_drivers/inc/led.h",
+        "hw_drivers/inc/motor_dc.h",
+        "hw_drivers/inc/pwm.h",
+        "hw_drivers/inc/uart.h",
+        "hw_drivers/inc/ultrasonic.h",
+        "hw_drivers/src/led.cpp",
+        "hw_drivers/src/motor_dc.cpp",
+        "hw_drivers/src/pwm.cpp",
+        "hw_drivers/src/uart.cpp",
+        "hw_drivers/src/ultrasonic.cpp",
         "inc/FreeRTOSConfig.h",
         "inc/buffer.h",
-        "inc/led.h",
-        "inc/motor_dc.h",
-        "inc/pwm.h",
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
-        "inc/uart.h",
-        "inc/ultrasonic.h",
         "interrupts.cpp",
         "main.cpp",
         "os_drivers/inc/eventgroup.h",
@@ -89,12 +94,7 @@ CppApplication {
         "os_drivers/src/eventgroup.cpp",
         "os_drivers/src/mutex.cpp",
         "os_drivers/src/semaphore.cpp",
-        "src/led.cpp",
-        "src/motor_dc.cpp",
-        "src/pwm.cpp",
         "src/system.c",
-        "src/uart.cpp",
-        "src/ultrasonic.cpp",
     ]
 
     FileTagger {
@@ -129,7 +129,7 @@ CppApplication {
     }
 
     cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER', 'USE_FULL_LL_DRIVER']
-    cpp.includePaths: ["inc", "os_drivers/inc"]
+    cpp.includePaths: ["inc", "os_drivers/inc", "hw_drivers/inc"]
     cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 
     cpp.warningLevel: 'all'
