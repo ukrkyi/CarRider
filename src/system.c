@@ -3,6 +3,8 @@
 
 #include <stm32f4xx_ll_rcc.h>
 
+#include "cmsis_gcc.h"
+
 #include "system.h"
 
 #include "FreeRTOS.h"
@@ -124,6 +126,13 @@ void assert_failed(uint8_t *file, uint32_t line) {
 	UNUSED(line);
 	taskDISABLE_INTERRUPTS();
 	for( ;; );
+}
+
+void vApplicationIdleHook( void )
+{
+	__DSB();
+	__WFI();
+	__ISB();
 }
 
 //uint32_t HAL_GetTick(){

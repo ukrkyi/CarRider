@@ -45,7 +45,7 @@
 extern uint32_t SystemCoreClock;
 
 #define configUSE_PREEMPTION			1
-#define configUSE_IDLE_HOOK				0
+#define configUSE_IDLE_HOOK				1
 #define configUSE_TICK_HOOK				0
 #define configCPU_CLOCK_HZ				( SystemCoreClock )
 #define configTICK_RATE_HZ				( ( TickType_t ) 1000 )
@@ -70,6 +70,8 @@ extern uint32_t SystemCoreClock;
 #define configUSE_MALLOC_FAILED_HOOK	1
 #define configUSE_APPLICATION_TASK_TAG	0
 #define configUSE_COUNTING_SEMAPHORES	0
+
+#define configUSE_TICKLESS_IDLE 1
 
 /* Memory allocation related definitions. */
 #define configSUPPORT_STATIC_ALLOCATION         1

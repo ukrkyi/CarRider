@@ -1,6 +1,8 @@
 /* (c) 2020 ukrkyi */
 #include <stm32f4xx_hal.h>
 
+#include <stm32f4xx_ll_system.h>
+
 #include "motor_dc.h"
 #include "pwm.h"
 #include "ultrasonic.h"
@@ -90,6 +92,10 @@ void wifiTask(void * parameters) {
 int main()
 {
 	SystemConfig();
+
+#ifndef NDEBUG
+	LL_DBGMCU_EnableDBGSleepMode();
+#endif
 
 	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, xStack[0], xTaskBuffer);
 	xTaskCreateStatic(wifiTask, "wifi", STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, xStack[1], xTaskBuffer + 1);

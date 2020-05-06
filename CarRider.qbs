@@ -63,6 +63,7 @@ CppApplication {
         "HAL/inc/stm32f4xx_ll_bus.h",
         "HAL/inc/stm32f4xx_ll_dma.h",
         "HAL/inc/stm32f4xx_ll_rcc.h",
+        "HAL/inc/stm32f4xx_ll_system.h",
         "HAL/inc/stm32f4xx_ll_usart.h",
         "HAL/src/stm32f4xx_hal_gpio.c",
         "HAL/src/stm32f4xx_hal_rcc.c",
