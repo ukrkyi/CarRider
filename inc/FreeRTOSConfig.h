@@ -43,6 +43,7 @@
 
 #include <stdint.h>
 extern uint32_t SystemCoreClock;
+#include <stm32_assert.h>
 
 #define configUSE_PREEMPTION			1
 #define configUSE_IDLE_HOOK				1
