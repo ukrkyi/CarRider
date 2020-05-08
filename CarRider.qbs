@@ -86,6 +86,7 @@ CppApplication {
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
         "inc/task.hpp",
+        "inc/wifi.h",
         "interrupts.cpp",
         "main.cpp",
         "os_drivers/inc/eventgroup.h",
@@ -97,6 +98,7 @@ CppApplication {
         "os_drivers/src/semaphore.cpp",
         "src/system.c",
         "src/task.cpp",
+        "src/wifi.cpp",
     ]
 
     FileTagger {

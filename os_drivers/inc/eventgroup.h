@@ -6,8 +6,14 @@
 #include "event_groups.h"
 
 enum Event {
-	ULTRASONIC_MEASUREMENT_COMPLETED = 0x1,
-	ESP_REPLY_RECEIVED = 0x2,
+	NO_EVENT             = 0x00,
+	// Sensors go here
+	ULTRASONIC_NEW_DATA  = 0x01,
+	// WiFi go here
+	WIFI_STATE_CHANGED   = 0x10,
+	WIFI_DATA_RECEIVED   = 0x20,
+	WIFI_CMD_PROCESSED   = 0x40,
+	WIFI_COMMAND_ERROR   = 0x80,
 };
 
 class EventGroup

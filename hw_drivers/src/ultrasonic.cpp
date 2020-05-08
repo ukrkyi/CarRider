@@ -129,12 +129,14 @@ void Ultrasonic::processEcho(float avgSpeed)
 			__HAL_TIM_CLEAR_IT(&echoTim, TIM_IT_CC1);
 		else if (__HAL_TIM_GET_IT_SOURCE(&echoTim, TIM_FLAG_CC1OF)) // Overcapture is sad((((
 			while(1);
+		else
+			while(1);
 	} else
 		while(1);
 	uint32_t us = __HAL_TIM_GET_COMPARE(&echoTim, echoCh);
 	const uint32_t temp = +20;
 	const float soundSpeed = ((float)(331300+596*temp))/1000000;
 	distance = us*(soundSpeed - avgSpeed)/2;
-	EventGroup::getInstance().notifyISR(ULTRASONIC_MEASUREMENT_COMPLETED);
+	EventGroup::getInstance().notifyISR(ULTRASONIC_NEW_DATA);
 	// We ignore output value since we can't do anything about it for now
 }

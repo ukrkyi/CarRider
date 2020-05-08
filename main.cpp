@@ -18,6 +18,8 @@
 
 #include "buffer.h"
 
+#include "wifi.h"
+
 #include <stdio.h>
 
 #define STACK_SIZE	configMINIMAL_STACK_SIZE * 2
@@ -27,65 +29,76 @@ StaticTask_t xTaskBuffer[TASK_NUM];
 
 StackType_t xStack[TASK_NUM][ STACK_SIZE ];
 
-void mainTask(void * parameters) {
+extern "C" void mainTask(void * parameters) {
 //	LED& led = LED::getInstance();
 
 //	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
 //				&turn = MotorDC::getInstance(MOTOR_TURN);
+	const WiFi::Socket comp = {"192.168.1.98", 1488};
+	const WiFi::AccessPoint ap = {"KSE_2.4", "quang1967", true};
+	WiFi::Data data;
+
+	LED & led = LED::getInstance();
+	WiFi & wifi = WiFi::getInstance();
+
+	EventGroup &evt = EventGroup::getInstance();
+
+	evt.clear(WIFI_COMMAND_ERROR);
+
+	Event res;
+
+	wifi.sendCommand(WiFi::POWER_ON);
+
+	res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
+
+	if (res & WIFI_COMMAND_ERROR)
+		while (1); // TODO handle error
+
+	vTaskDelay(500);
+
+	if (wifi.getState() != WiFi::WIFI_CONNECTED) {
+		wifi.sendCommand(WiFi::WIFI_CONNECT, (void *) &ap);
+
+		res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
+
+		if (res & WIFI_COMMAND_ERROR)
+			while (1); // TODO handle error
+	}
+
+	do {
+		wifi.sendCommand(WiFi::TCP_CONNECT, (void *) &comp);
+		res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
+
+		if (res & WIFI_COMMAND_ERROR) {
+			led.on();
+			vTaskDelay(1000);
+			continue;
+		}
+	} while (wifi.getState() != WiFi::TCP_CONNECTED);
+
+	led.off();
+
+	wifi.sendCommand(WiFi::TCP_SEND, &(data = {3, "o/\n"}));
 
 	Ultrasonic & range = Ultrasonic::getInstance();
 
-
 	range.start();
 
-	EventGroup &sensors = EventGroup::getInstance();
-	UART &uart = UART::getInstance();
-
 	static float distance;
-	static char buf[10];
-	int size;
+	static char str[15];
+	static unsigned size;
 
 	while(1) {
-		sensors.wait(ULTRASONIC_MEASUREMENT_COMPLETED);
+		evt.wait(ULTRASONIC_NEW_DATA);
+
 		distance = range.getDistance();
-		size = snprintf(buf, 10, "%d.%d ", (int) distance, (int) (distance * 10) % 10);
-		uart.send((uint8_t *) buf, size > 10 ? 10 : size);
-		uart.send((const uint8_t *) "mm\n", 3);
+		size = snprintf(str, 15, "%d.%d mm\n", (int) distance, (int) (distance * 10) % 10);
+		data = {size, str};
+
+		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+		wifi.sendCommand(WiFi::TCP_SEND, &data);
+		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
 		vTaskDelay(500);
-	}
-}
-
-void wifiTask(void * parameters) {
-	static uint8_t queue_buffer[sizeof (size_t) * 5];
-	static Buffer<10> rxBuffer;
-
-	LED& led = LED::getInstance();
-	UART &uart = UART::getInstance();
-
-	Queue<size_t> q(queue_buffer, 5);
-
-	bool valid = false;
-
-	size_t pos;
-
-	uart.startRx(rxBuffer, rxBuffer.size(), q);
-
-	while(1) {
-		pos = q.take(valid);
-		if (!valid)
-			while(1);
-
-		Buffer<10>::chunk data = rxBuffer.newData(pos, &err);
-		while (data.length() != 0) {
-			if (data.beginsWith("+")) {
-				led.on();
-			} else if (data.beginsWith("-")){
-				led.off();
-			} else if (data.beginsWith("123")) {
-				uart.send((const uint8_t *)"123\n", 4);
-			}
-			rxBuffer.next(data, 1);
-		}
 	}
 }
 
@@ -98,7 +111,8 @@ int main()
 #endif
 
 	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, xStack[0], xTaskBuffer);
-	xTaskCreateStatic(wifiTask, "wifi", STACK_SIZE, NULL, tskIDLE_PRIORITY + 1, xStack[1], xTaskBuffer + 1);
+
+	WiFi::getInstance(); // create WiFi task
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();
