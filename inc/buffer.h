@@ -2,8 +2,10 @@
 #ifndef BUFFER_H
 #define BUFFER_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include <cstdint>
+#include <cstddef>
+
+#include <algorithm>
 
 #include "stm32_assert.h"
 
@@ -15,12 +17,19 @@ public:
 		Buffer& parent;
 		size_t position;
 	public:
+		using difference_type = size_t;
+		using value_type = uint8_t;
+		using pointer = uint8_t*;
+		using reference = uint8_t&;
+		using iterator_category = std::input_iterator_tag;
+
 		iterator(Buffer& parent, size_t pos = 0) : parent(parent), position(pos) {}
-		iterator(iterator &other) : parent(other.parent), position(other.position) {}
-		uint8_t operator *() {return parent.data[position];}
-		void operator++() {position = (position + 1) % N;}
+		iterator(const iterator &other) : parent(other.parent), position(other.position) {}
+		uint8_t& operator *() {return parent.data[position];}
+		iterator & operator++() {position = (position + 1) % N; return *this;}
 		iterator &operator+=(size_t n) {position = (position + n) % N; return *this;}
 		iterator operator+(size_t n) {return iterator(parent, (position + n) % N);}
+		size_t operator-(const iterator& other) {return (N + position - other.position) % N; }
 		size_t getPosition() const {return position;}
 		operator size_t() const {return getPosition();}
 	};
@@ -57,21 +66,20 @@ public:
 			iterator pos = begin;
 			return _same_start(other, pos) && (pos.getPosition() == end);
 		}
-		bool beginsWith(const char *string, size_t * next = NULL) {
+		bool beginsWith(const char *string) {
 			iterator pos = begin;
 			bool result = _same_start(string, pos) && (*string == 0);
-			if (next != NULL)
-				*next = pos;
 			return result;
 		}
-		operator uint8_t*() { return &(parent.data[begin]); }
-		inline bool isOverlap() {return end < begin; }
-		size_t length() {
-			if (isOverlap())
-				return N + end.getPosition() - begin.getPosition();
-			else
-				return end - begin;
+
+		size_t index(char c) {
+			for (iterator pos = begin; pos.getPosition() != end; ++pos)
+				if (*pos == c)
+					return pos - begin;
+			return length();
 		}
+		operator uint8_t*() { return &(parent.data[begin]); }
+		size_t length() {return end - begin; }
 //		size_t tillEnd() {return N - begin;}
 		iterator start() {return iterator(begin);}
 		chunk getBefore(size_t pos) {return chunk(parent, begin, begin + pos); }
@@ -82,12 +90,17 @@ public:
 	Buffer(const Buffer&) = delete;
 	Buffer& operator= ( const Buffer &other ) = delete;
 
-	size_t length() {return N;}
+	size_t size() {return N;}
+	size_t length() {return (N + tail - head) % N;}
 
 	operator uint8_t*() { return &(data[0]); }
 	uint8_t& operator [](size_t i) { return data[i];}
 
-	chunk newData(size_t position, bool * was_overwrite) {
+	chunk getData() {
+		return chunk(*this, head, tail);
+	}
+
+	chunk newData(size_t position, bool * was_overwrite = NULL) {
 		bool overwrite;
 		if (tail >= head) {
 			if (position >= tail || position <= head)

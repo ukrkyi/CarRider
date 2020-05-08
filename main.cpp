@@ -68,7 +68,7 @@ void wifiTask(void * parameters) {
 
 	size_t pos;
 
-	uart.startRx(rxBuffer, rxBuffer.length(), q);
+	uart.startRx(rxBuffer, rxBuffer.size(), q);
 
 	while(1) {
 		pos = q.take(valid);
