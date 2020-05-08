@@ -85,6 +85,7 @@ CppApplication {
         "inc/buffer.h",
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
+        "inc/task.hpp",
         "interrupts.cpp",
         "main.cpp",
         "os_drivers/inc/eventgroup.h",
@@ -95,6 +96,7 @@ CppApplication {
         "os_drivers/src/mutex.cpp",
         "os_drivers/src/semaphore.cpp",
         "src/system.c",
+        "src/task.cpp",
     ]
 
     FileTagger {

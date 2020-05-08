@@ -4,11 +4,12 @@
 #include "stm32f4xx_ll_dma.h"
 #include "stm32f4xx_ll_usart.h"
 
+#include "task.hpp"
 
 UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t rxPin,
 	   USART_TypeDef *uart, uint32_t baudrate,
 	   DMA_TypeDef *dma, uint32_t txStream, uint32_t rxStream) :
-	uart(uart), dma(dma), streamTx(txStream), streamRx(rxStream), queue(NULL)
+	uart(uart), dma(dma), streamTx(txStream), streamRx(rxStream), queue(NULL), notifyReception(NULL)
 {
 	assert_param((txPort == GPIOA || txPort == GPIOB) && (rxPort == GPIOA || rxPort == GPIOB));
 
@@ -137,9 +138,10 @@ void UART::send(const uint8_t *data, uint32_t length)
 }
 
 
-void UART::startRx(uint8_t *buffer, uint32_t size, Queue<size_t> &queueRef)
+void UART::startRx(uint8_t *buffer, uint32_t size, Queue<size_t> &queueRef, Task * notify)
 {
 	queue = &queueRef;
+	notifyReception = notify;
 	bufLength = size;
 
 	LL_DMA_SetMode(dma, streamRx, LL_DMA_MODE_CIRCULAR);
@@ -237,4 +239,7 @@ void UART::processRxCplt()
 	position = bufLength - LL_DMA_GetDataLength(dma, streamRx);
 
 	queue->putISR(position);
+	if (notifyReception != NULL) {
+		 notifyReception->notifyISR();
+	}
 }

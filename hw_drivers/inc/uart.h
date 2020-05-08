@@ -10,6 +10,8 @@
 
 #include "queue.hpp"
 
+class Task;
+
 #define DATA_OVERWRITE	0xFFFF0000UL
 
 class UART
@@ -19,6 +21,7 @@ class UART
 	uint32_t streamTx, streamRx;
 	BinarySemaphore mutex;
 	Queue<size_t> * queue;
+	Task * notifyReception;
 	size_t bufLength;
 	UART(GPIO_TypeDef * txPort, uint16_t txPin,
 	     GPIO_TypeDef * rxPort, uint16_t rxPin,
@@ -31,7 +34,7 @@ public:
 
 	void send(const uint8_t *data, uint32_t length);
 	//template<int N> void send(typename Buffer<N>::chunk& data);
-	void startRx(uint8_t * buffer, uint32_t size, Queue<size_t>& queueRef);
+	void startRx(uint8_t * buffer, uint32_t size, Queue<size_t>& queueRef, Task * notify = NULL);
 	void stopRx();
 	void receive(uint8_t * buffer, uint32_t size, void (*callback)());
 	//template<int N> void startRx(Buffer<N>& buffer, QueueHandle_t queueHandle) {startRx(buffer, N, queueHandle);}
