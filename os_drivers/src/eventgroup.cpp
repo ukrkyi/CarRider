@@ -18,7 +18,7 @@ EventGroup &EventGroup::getInstance()
 	return sensorEvents;
 }
 
-bool EventGroup::notify(Event event)
+bool EventGroup::notifyISR(Event event)
 {
 	BaseType_t xHigherPriorityTaskWoken, xResult;
 
@@ -34,14 +34,27 @@ bool EventGroup::notify(Event event)
 	}
 }
 
-bool EventGroup::wait(Event event)
+void EventGroup::notify(Event event)
+{
+	if (xPortIsInsideInterrupt())
+		notifyISR(event);
+	else
+		xEventGroupSetBits(handle, event);
+}
+
+Event EventGroup::wait(int event)
 {
 	EventBits_t uxBits = xEventGroupWaitBits(
 		    handle,
 		    event,
 		    pdTRUE,
-		    pdTRUE,
+		    pdFALSE,
 		    portMAX_DELAY );
 
-	return (uxBits & event) == event;
+	return Event(uxBits & event);
+}
+
+void EventGroup::clear(int event)
+{
+	xEventGroupClearBits(handle, event);
 }

@@ -64,15 +64,15 @@ void wifiTask(void * parameters) {
 
 	Queue<size_t> q(queue_buffer, 5);
 
-	bool err = false;
+	bool valid = false;
 
 	size_t pos;
 
 	uart.startRx(rxBuffer, rxBuffer.length(), q);
 
 	while(1) {
-		pos = q.take(err);
-		if (err)
+		pos = q.take(valid);
+		if (!valid)
 			while(1);
 
 		Buffer<10>::chunk data = rxBuffer.newData(pos, &err);

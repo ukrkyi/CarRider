@@ -18,8 +18,11 @@ class EventGroup
 	~EventGroup();
 public:
 	static EventGroup& getInstance();
-	bool notify(Event event);
-	bool wait(Event event);
+	bool notifyISR(Event event);
+	void notify(Event event);
+	/** event should be a combination from Event enum */
+	Event wait(int event);
+	void clear(int event);
 };
 
 #endif // EVENTGROUP_H

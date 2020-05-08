@@ -15,7 +15,7 @@ public:
 	}
 	Queue() = delete;
 	Queue(const Queue&) = delete;
-	bool put(T& data) {
+	bool putISR(T& data) {
 		BaseType_t xHigherPriorityTaskWoken = pdFALSE, xResult;
 
 		xResult = xQueueSendFromISR(handle, &data, &xHigherPriorityTaskWoken );
@@ -27,15 +27,25 @@ public:
 			return false;
 		}
 	}
+	bool put(T& data) {
+		if (xPortIsInsideInterrupt())
+			return putISR(data);
+		else {
+			return xQueueSend(handle, &data, portMAX_DELAY) == pdTRUE;
+		}
+	}
 	T front() {
 		T data;
 		xQueuePeekFromISR(handle, &data);
 		return data;
 	}
-	T take(bool& error) {
+	bool empty() {
+		return uxQueueMessagesWaiting(handle) == 0;
+	}
+	inline T take(bool& valid, bool block = true) {
 		T data;
-		BaseType_t xResult = xQueueReceive(handle, &data, portMAX_DELAY);
-		error = !xResult;
+		BaseType_t xResult = xQueueReceive(handle, &data, block ? portMAX_DELAY : 0);
+		valid = xResult;
 		return data;
 	}
 };

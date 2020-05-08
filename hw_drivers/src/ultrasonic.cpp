@@ -135,6 +135,6 @@ void Ultrasonic::processEcho(float avgSpeed)
 	const uint32_t temp = +20;
 	const float soundSpeed = ((float)(331300+596*temp))/1000000;
 	distance = us*(soundSpeed - avgSpeed)/2;
-	EventGroup::getInstance().notify(ULTRASONIC_MEASUREMENT_COMPLETED);
+	EventGroup::getInstance().notifyISR(ULTRASONIC_MEASUREMENT_COMPLETED);
 	// We ignore output value since we can't do anything about it for now
 }

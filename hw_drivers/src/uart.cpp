@@ -236,5 +236,5 @@ void UART::processRxCplt()
 
 	position = bufLength - LL_DMA_GetDataLength(dma, streamRx);
 
-	queue->put(position);
+	queue->putISR(position);
 }
