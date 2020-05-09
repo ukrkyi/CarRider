@@ -11,8 +11,10 @@ extern "C" {
 }
 #endif
 
-#define UART_RX_IT_PRIORITY	5
+#define I2C_IT_PRIORITY 	5
+#define I2C_CPLT_IT_PRIORITY	9
+#define UART_RX_IT_PRIORITY	6
 #define UART_TX_IT_PRIORITY	10
-#define ULTRASONIC_IT_PRIORITY	6
+#define ULTRASONIC_IT_PRIORITY	7
 
 #endif // SYSTEM_H

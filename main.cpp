@@ -11,7 +11,7 @@
 #include "system.h"
 #include "eventgroup.h"
 
-#include "uart.h"
+#include "i2c.h"
 
 #include "FreeRTOS.h"
 #include "task.h"
@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 #define STACK_SIZE	configMINIMAL_STACK_SIZE * 2
-#define TASK_NUM	2
+#define TASK_NUM	1
 
 StaticTask_t xTaskBuffer[TASK_NUM];
 
@@ -54,7 +54,7 @@ extern "C" void mainTask(void * parameters) {
 	if (res & WIFI_COMMAND_ERROR)
 		while (1); // TODO handle error
 
-	vTaskDelay(500);
+	vTaskDelay(1000);
 
 	if (wifi.getState() != WiFi::WIFI_CONNECTED) {
 		wifi.sendCommand(WiFi::WIFI_CONNECT, (void *) &ap);
@@ -79,20 +79,44 @@ extern "C" void mainTask(void * parameters) {
 	led.off();
 
 	wifi.sendCommand(WiFi::TCP_SEND, &(data = {3, "o/\n"}));
+	evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
 
 	Ultrasonic & range = Ultrasonic::getInstance();
 
 	range.start();
 
 	static float distance;
-	static char str[15];
+	static char str[25];
 	static unsigned size;
+	static const uint8_t acc_addr = 0x1D, mag_addr = 0x1E;
+	static const uint8_t acc_reg = 0x0F, mag_reg = 0x0F;
+	static uint8_t id;
 
 	while(1) {
 		evt.wait(ULTRASONIC_NEW_DATA);
 
 		distance = range.getDistance();
-		size = snprintf(str, 15, "%d.%d mm\n", (int) distance, (int) (distance * 10) % 10);
+		size = snprintf(str, 25, "Ultrasonic: %d.%d mm\n", (int) distance, (int) (distance * 10) % 10);
+		data = {size, str};
+
+		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+		wifi.sendCommand(WiFi::TCP_SEND, &data);
+		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+
+		I2C &i2c = I2C::getInstance();
+
+		i2c.read(acc_addr, acc_reg, &id, 1);
+		evt.wait(I2C_COMM_FINISHED);
+		size = snprintf(str, 25, "Acceletometer: 0x%X\n", id);
+		data = {size, str};
+
+		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+		wifi.sendCommand(WiFi::TCP_SEND, &data);
+		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+
+		i2c.read(mag_addr, mag_reg, &id, 1);
+		evt.wait(I2C_COMM_FINISHED);
+		size = snprintf(str, 25, "Magnetometer: 0x%X\n", id);
 		data = {size, str};
 
 		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);

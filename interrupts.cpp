@@ -2,6 +2,7 @@
 
 #include "ultrasonic.h"
 #include "uart.h"
+#include "i2c.h"
 
 extern "C" {
 
@@ -19,6 +20,14 @@ void DMA2_Stream2_IRQHandler(void) {
 
 void USART1_IRQHandler(void) {
 	UART::getInstance().processRxCplt();
+}
+
+void I2C1_EV_IRQHandler(void) {
+	I2C::getInstance().processInterrupt();
+}
+
+void DMA1_Stream0_IRQHandler(void) {
+	I2C::getInstance().processRxFinish();
 }
 
 }
