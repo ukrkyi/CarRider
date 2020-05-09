@@ -37,10 +37,10 @@ void SystemClock_Config(void)
 	while(LL_RCC_PLL_IsReady());
 
 	/* Configure the main PLL clock source, multiplication and division factors. */
-	LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE,
-				    LL_RCC_PLLM_DIV_25,
-				    336,
-				    LL_RCC_PLLP_DIV_4);
+	LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSE, // 25 MHz
+				    LL_RCC_PLLM_DIV_15, // 1 + 2/3 MHz (range 1..2)
+				    192, // 320 MHz (range 192..432)
+				    LL_RCC_PLLP_DIV_4); // 80 MHz
 	/* Enable the main PLL. */
 	LL_RCC_PLL_Enable();
 
