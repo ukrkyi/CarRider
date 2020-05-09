@@ -6,6 +6,8 @@
 
 #include "task.hpp"
 
+#include "system.h"
+
 UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t rxPin,
 	   USART_TypeDef *uart, uint32_t baudrate,
 	   DMA_TypeDef *dma, uint32_t txStream, uint32_t rxStream) :
@@ -75,8 +77,8 @@ UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t 
 		assert_param(0);
 
 	if (dma == DMA2 && txStream == LL_DMA_STREAM_7 && rxStream == LL_DMA_STREAM_2) {
-		NVIC_SetPriority(DMA2_Stream7_IRQn, 10); // Tx
-		NVIC_SetPriority(DMA2_Stream2_IRQn, 5); // Rx
+		NVIC_SetPriority(DMA2_Stream7_IRQn, UART_TX_IT_PRIORITY); // Tx
+		NVIC_SetPriority(DMA2_Stream2_IRQn, UART_RX_IT_PRIORITY); // Rx
 
 		NVIC_EnableIRQ(DMA2_Stream7_IRQn);
 		NVIC_EnableIRQ(DMA2_Stream2_IRQn);
@@ -102,7 +104,7 @@ UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t 
 	LL_USART_ConfigAsyncMode(uart);
 
 	if (uart == USART1) {
-		NVIC_SetPriority(USART1_IRQn, 5);
+		NVIC_SetPriority(USART1_IRQn, UART_RX_IT_PRIORITY);
 		NVIC_EnableIRQ(USART1_IRQn);
 	} else
 		assert_param(0);

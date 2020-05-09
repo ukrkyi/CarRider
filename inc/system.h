@@ -11,4 +11,8 @@ extern "C" {
 }
 #endif
 
+#define UART_RX_IT_PRIORITY	5
+#define UART_TX_IT_PRIORITY	10
+#define ULTRASONIC_IT_PRIORITY	6
+
 #endif // SYSTEM_H

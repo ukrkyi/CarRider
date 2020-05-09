@@ -3,7 +3,7 @@
 
 #include "eventgroup.h"
 
-#define COUNTER_FREQ 1000000
+#include "system.h"
 
 float Ultrasonic::getDistance() const
 {
@@ -95,7 +95,7 @@ Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *e
 	icConf.ICFilter   = 0x02;
 	HAL_TIM_IC_ConfigChannel(&echoTim, &icConf, echoChannel);
 
-	NVIC_SetPriority(TIM2_IRQn, 6);
+	NVIC_SetPriority(TIM2_IRQn, ULTRASONIC_IT_PRIORITY);
 }
 
 Ultrasonic &Ultrasonic::getInstance()
