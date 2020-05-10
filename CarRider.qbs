@@ -89,10 +89,9 @@ CppApplication {
         "inc/buffer.h",
         "inc/stm32f4xx_hal_conf.h",
         "inc/system.h",
-        "inc/task.hpp",
-        "inc/wifi.h",
         "interrupts.cpp",
         "main.cpp",
+        "system.c",
         "os_drivers/inc/eventgroup.h",
         "os_drivers/inc/mutex.h",
         "os_drivers/inc/queue.hpp",
@@ -100,9 +99,10 @@ CppApplication {
         "os_drivers/src/eventgroup.cpp",
         "os_drivers/src/mutex.cpp",
         "os_drivers/src/semaphore.cpp",
-        "src/system.c",
-        "src/task.cpp",
-        "src/wifi.cpp",
+        "tasks/inc/task.hpp",
+        "tasks/inc/wifi.h",
+        "tasks/src/task.cpp",
+        "tasks/src/wifi.cpp",
     ]
 
     FileTagger {
@@ -137,7 +137,7 @@ CppApplication {
     }
 
     cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER', 'USE_FULL_LL_DRIVER']
-    cpp.includePaths: ["inc", "os_drivers/inc", "hw_drivers/inc"]
+    cpp.includePaths: ["inc", "os_drivers/inc", "hw_drivers/inc", "tasks/inc"]
     cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 
     cpp.warningLevel: 'all'
