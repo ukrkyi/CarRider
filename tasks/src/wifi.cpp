@@ -140,7 +140,7 @@ WiFi::WiFi(const char *name, UBaseType_t priority, UART& uart, GPIO_TypeDef * po
 void WiFi::run()
 {
 	while (1) {
-		xTaskNotifyWait(0x0, 0x0, NULL, portMAX_DELAY);
+		wait();
 
 		do {
 			while (!uartQueue.empty()) {

@@ -18,11 +18,12 @@ class Task
 protected:
 	Task(const char * name, Task * task, UBaseType_t priority);
 	virtual void run(void) = 0;
+	uint32_t wait(uint32_t clear = 0);
 public:
 	Task() = delete;
 	Task(const Task &) = delete;
-	void notify();
-	void notifyISR();
+	void notify(uint32_t bit = 0);
+	void notifyISR(uint32_t bit = 0);
 };
 
 #endif // TASK_HPP
