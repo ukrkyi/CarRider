@@ -119,7 +119,7 @@ void I2C::read(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
 
 	LL_DMA_EnableStream(DMA1, dmaStream);
 
-	LL_I2C_EnableIT_RX(I2C1);
+	LL_I2C_EnableIT_TX(I2C1);
 
 	LL_I2C_GenerateStartCondition(I2C1);
 }
@@ -143,6 +143,10 @@ void I2C::processInterrupt()
 			LL_I2C_TransmitData8(i2c, (commAddress << 1) | I2C_READ);
 			if (dataLeft == 1)
 				LL_I2C_AcknowledgeNextData(i2c, LL_I2C_NACK);
+			else {
+				LL_I2C_AcknowledgeNextData(i2c, LL_I2C_ACK);
+				LL_I2C_EnableLastDMA(i2c); //Allow DMA to generate NACK
+			}
 			// Enable DMA RX
 			LL_I2C_EnableDMAReq_RX(i2c);
 			return;
@@ -180,7 +184,7 @@ void I2C::processInterrupt()
 			// Write data
 			if (dataLeft){
 				dataLeft--;
-				LL_I2C_TransmitData8(i2c, *(dataPtr--));
+				LL_I2C_TransmitData8(i2c, *(dataPtr++));
 			} else {
 				state = STANDBY;
 				LL_I2C_GenerateStopCondition(i2c);
@@ -189,7 +193,8 @@ void I2C::processInterrupt()
 				mutex.giveISR();
 			}
 			break;
-		default:
+		case START:
+		case STANDBY:
 			while(1);
 		}
 	}
@@ -213,6 +218,7 @@ void I2C::processRxFinish()
 	}
 
 	LL_I2C_DisableDMAReq_RX(i2c);
+	LL_I2C_DisableLastDMA(i2c);
 	LL_I2C_GenerateStopCondition(i2c);
 
 	state = STANDBY;
