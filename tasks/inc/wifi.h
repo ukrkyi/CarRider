@@ -38,6 +38,7 @@ public:
 		UPDATE_PROGRESS,
 		WIFI_CONNECTION_INFO,
 		TCP_SEND_OK,
+		TCP_SEND_FAIL,
 	};
 
 	enum State {

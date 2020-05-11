@@ -40,6 +40,7 @@ static const char * wifi_evt[] = {
 	[WiFi::UPDATE_PROGRESS] = "+CIPUPDATE:",
 	[WiFi::WIFI_CONNECTION_INFO] = "+CWJAP:",
 	[WiFi::TCP_SEND_OK] = "SEND OK",
+	[WiFi::TCP_SEND_FAIL] = "SEND FAIL",
 };
 
 static const int wifi_evt_num = sizeof(wifi_evt) / sizeof(char * );
@@ -103,7 +104,7 @@ static const CommandType command[] = {
 	[AT_WRITE_DATA] =  {
 		.name	= NULL,
 		.ok	= WiFi::TCP_SEND_OK,
-		.error	= WiFi::GENERIC_ERROR,
+		.error	= WiFi::TCP_SEND_FAIL,
 	},
 };
 
@@ -164,7 +165,7 @@ void WiFi::run()
 				evt.clear(WIFI_CMD_PROCESSED);
 				if (!processCommand(cmd.cmd, cmd.data))
 					evt.notify(WIFI_COMMAND_ERROR);
-				else if (commandQueue.empty()) // we processed all scheduled commands
+				if (commandQueue.empty()) // we processed all scheduled commands
 					evt.notify(WIFI_CMD_PROCESSED);
 
 			}
