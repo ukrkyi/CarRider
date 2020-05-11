@@ -4,7 +4,6 @@
 #include "stm32f4xx_ll_dma.h"
 
 #include "system.h"
-#include "eventgroup.h"
 
 #define I2C_WRITE	0x0
 #define I2C_READ	0x1
@@ -82,7 +81,7 @@ I2C::I2C(I2C_TypeDef * i2c, GPIO_TypeDef * port, uint16_t sclPin, uint16_t sdaPi
 	mutex.give();
 }
 
-void I2C::write(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
+void I2C::write(uint8_t address, uint8_t reg, const uint8_t *data, size_t size, Task *task, uint32_t bit)
 {
 	mutex.take();
 
@@ -90,6 +89,9 @@ void I2C::write(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
 	commRegister = reg;
 	dataPtr = data;
 	dataLeft = size;
+
+	notifyTask = task;
+	notifyBit = bit;
 
 	operation = WRITE;
 	state = START;
@@ -99,7 +101,7 @@ void I2C::write(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
 	LL_I2C_GenerateStartCondition(I2C1);
 }
 
-void I2C::read(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
+void I2C::read(uint8_t address, uint8_t reg, const uint8_t *data, size_t size, Task *task, uint32_t bit)
 {
 	mutex.take();
 
@@ -107,6 +109,9 @@ void I2C::read(uint8_t address, uint8_t reg, uint8_t *data, size_t size)
 	commRegister = reg;
 	dataPtr = data;
 	dataLeft = size;
+
+	notifyTask = task;
+	notifyBit = bit;
 
 	operation = READ;
 	state = START;
@@ -189,7 +194,8 @@ void I2C::processInterrupt()
 				state = STANDBY;
 				LL_I2C_GenerateStopCondition(i2c);
 				LL_I2C_DisableIT_EVT(i2c);
-				EventGroup::getInstance().notifyISR(I2C_COMM_FINISHED);
+				if (notifyTask != NULL)
+					notifyTask->notifyISR(notifyBit);
 				mutex.giveISR();
 			}
 			break;
@@ -222,6 +228,7 @@ void I2C::processRxFinish()
 	LL_I2C_GenerateStopCondition(i2c);
 
 	state = STANDBY;
-	EventGroup::getInstance().notifyISR(I2C_COMM_FINISHED);
+	if (notifyTask != NULL)
+		notifyTask->notifyISR(notifyBit);
 	mutex.giveISR();
 }

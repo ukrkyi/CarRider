@@ -8,6 +8,7 @@
 #define STACK_SIZE	configMINIMAL_STACK_SIZE * 2
 
 #define WIFI_TASK_PRIORITY	tskIDLE_PRIORITY + 1
+#define POSITION_TASK_PRIORITY	tskIDLE_PRIORITY + 3
 
 class Task
 {

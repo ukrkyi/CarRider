@@ -9,7 +9,6 @@ enum Event {
 	NO_EVENT             = 0x00,
 	// Sensors go here
 	ULTRASONIC_NEW_DATA  = 0x01,
-	I2C_COMM_FINISHED    = 0x02,
 	// WiFi go here
 	WIFI_STATE_CHANGED   = 0x10,
 	WIFI_DATA_RECEIVED   = 0x20,

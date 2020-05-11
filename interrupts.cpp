@@ -3,6 +3,7 @@
 #include "ultrasonic.h"
 #include "uart.h"
 #include "i2c.h"
+#include "position.h"
 
 extern "C" {
 
@@ -28,6 +29,14 @@ void I2C1_EV_IRQHandler(void) {
 
 void DMA1_Stream0_IRQHandler(void) {
 	I2C::getInstance().processRxFinish();
+}
+
+void EXTI1_IRQHandler(void) {
+	Position::getInstance().processMagIrq();
+}
+
+void EXTI2_IRQHandler(void) {
+	Position::getInstance().processAccIrq();
 }
 
 }

@@ -11,14 +11,13 @@
 #include "system.h"
 #include "eventgroup.h"
 
-#include "i2c.h"
-
 #include "FreeRTOS.h"
 #include "task.h"
 
 #include "buffer.h"
 
 #include "wifi.h"
+#include "position.h"
 
 #include <stdio.h>
 
@@ -88,9 +87,6 @@ extern "C" void mainTask(void * parameters) {
 	static float distance;
 	static char str[25];
 	static unsigned size;
-	static const uint8_t acc_addr = 0x1D, mag_addr = 0x1E;
-	static const uint8_t acc_reg = 0x0F, mag_reg = 0x0F;
-	static uint8_t id;
 
 	while(1) {
 		evt.wait(ULTRASONIC_NEW_DATA);
@@ -99,30 +95,10 @@ extern "C" void mainTask(void * parameters) {
 		size = snprintf(str, 25, "Ultrasonic: %d.%d mm\n", (int) distance, (int) (distance * 10) % 10);
 		data = {size, str};
 
-		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+		evt.clear(WIFI_CMD_PROCESSED);
 		wifi.sendCommand(WiFi::TCP_SEND, &data);
-		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
-
-		I2C &i2c = I2C::getInstance();
-
-		i2c.read(acc_addr, acc_reg, &id, 1);
-		evt.wait(I2C_COMM_FINISHED);
-		size = snprintf(str, 25, "Acceletometer: 0x%X\n", id);
-		data = {size, str};
-
-		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
-		wifi.sendCommand(WiFi::TCP_SEND, &data);
-		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
-
-		i2c.read(mag_addr, mag_reg, &id, 1);
-		evt.wait(I2C_COMM_FINISHED);
-		size = snprintf(str, 25, "Magnetometer: 0x%X\n", id);
-		data = {size, str};
-
-		evt.clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
-		wifi.sendCommand(WiFi::TCP_SEND, &data);
-		evt.wait(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
-		vTaskDelay(500);
+		evt.wait(WIFI_CMD_PROCESSED);
+		vTaskDelay(5000);
 	}
 }
 
@@ -137,6 +113,7 @@ int main()
 	xTaskCreateStatic(mainTask, "main", STACK_SIZE, NULL, tskIDLE_PRIORITY + 2, xStack[0], xTaskBuffer);
 
 	WiFi::getInstance(); // create WiFi task
+	Position::getInstance(); // create Position task
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

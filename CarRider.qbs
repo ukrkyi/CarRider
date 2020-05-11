@@ -99,8 +99,10 @@ CppApplication {
         "os_drivers/src/eventgroup.cpp",
         "os_drivers/src/mutex.cpp",
         "os_drivers/src/semaphore.cpp",
+        "tasks/inc/position.h",
         "tasks/inc/task.hpp",
         "tasks/inc/wifi.h",
+        "tasks/src/position.cpp",
         "tasks/src/task.cpp",
         "tasks/src/wifi.cpp",
     ]
