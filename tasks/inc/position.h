@@ -29,7 +29,7 @@ class Position : public Task
 		[MAGNETOMETER] = 0x1E
 	};
 
-	int16_t accel_raw[30], magnet_raw[3];
+	int16_t accel_raw[60], magnet_raw[3];
 
 	float temp;
 

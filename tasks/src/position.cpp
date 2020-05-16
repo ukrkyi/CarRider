@@ -66,13 +66,13 @@ void Position::run()
 			while (!readData(ACCELEROMETER));
 			// TODO process accelerometer data
 			if (measure) {
-				for (int i = 0; i < 10; i++)
+				for (int i = 0; i < 20; i++)
 					data[active_buf].len +=
 							snprintf(buf[active_buf] + data[active_buf].len,
 								 2048 - data[active_buf].len,
 							     "%d,%d,%d,%d\n",
 							     time, accel_raw[i*3], accel_raw[i*3 + 1], accel_raw[i*3 + 2]);
-				if (data[active_buf].len > 1800) {
+				if (data[active_buf].len > 1700) {
 					active_buf = (active_buf + 1) % 5;
 					data[active_buf].len = 0;
 					send_data_in_process = true;
@@ -144,7 +144,7 @@ void Position::writeConfig()
 #ifndef NDEBUG
 	uint8_t checkConfig[5];
 #endif
-	static uint8_t fifo_rst = 0, fifo_en = 0x20 | 10;
+	static uint8_t fifo_rst = 0, fifo_en = 0x20 | 20;
 	// Reset FIFO
 	i2c.write(addr[ACCELEROMETER], 0x2E, &fifo_rst, 1, this, I2C_COMM_FINISHED);
 	wait(I2C_COMM_FINISHED);
@@ -215,7 +215,7 @@ bool Position::readData(Position::Sensor sensor)
 
 	i2c.read(addr[sensor], 0x28 | 0x80,
 		 (uint8_t *) (sensor == MAGNETOMETER ? magnet_raw : accel_raw),
-		 (sensor == MAGNETOMETER ? 6 : 60),
+		 (sensor == MAGNETOMETER ? 6 : 120),
 		 this, I2C_COMM_FINISHED);
 
 	wait(I2C_COMM_FINISHED);
