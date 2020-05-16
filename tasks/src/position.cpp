@@ -22,7 +22,7 @@ Position::Position(const char *name, UBaseType_t priority,
 
 	GPIO_InitStruct.Pin = accReady | magReady;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(port, &GPIO_InitStruct);
 
@@ -54,12 +54,52 @@ void Position::run()
 		notify(MAG_DATA_AVAILABLE);
 	// Wait for data available
 	uint32_t result = 0;
+	static char buf[5][2048];
+	int active_buf = 0, sending_buf_next = 0;
+	static WiFi::Data data[5] = {{0, buf[0]}, {0, buf[1]}, {0, buf[2]}, {0, buf[3]}, {0, buf[4]}};
+	bool send_data_in_process = false;
+	EventGroup::getInstance().clear(WIFI_COMMAND_ERROR);
 	do {
 		result = wait(ACC_DATA_AVAILABLE | MAG_DATA_AVAILABLE);
 
 		if (result & ACC_DATA_AVAILABLE) {
 			while (!readData(ACCELEROMETER));
 			// TODO process accelerometer data
+			if (measure) {
+				for (int i = 0; i < 10; i++)
+					data[active_buf].len +=
+							snprintf(buf[active_buf] + data[active_buf].len,
+								 2048 - data[active_buf].len,
+							     "%d,%d,%d,%d\n",
+							     time, accel_raw[i*3], accel_raw[i*3 + 1], accel_raw[i*3 + 2]);
+				if (data[active_buf].len > 1800) {
+					active_buf = (active_buf + 1) % 5;
+					data[active_buf].len = 0;
+					send_data_in_process = true;
+				}
+			}
+			if (send_data_in_process && EventGroup::getInstance().get() & WIFI_CMD_PROCESSED) {
+				// data sent
+				if (EventGroup::getInstance().get() & WIFI_COMMAND_ERROR) {
+					//retry
+					EventGroup::getInstance().clear(WIFI_CMD_PROCESSED | WIFI_COMMAND_ERROR);
+					WiFi::getInstance().sendCommand(WiFi::TCP_SEND, &(data[sending_buf_next - 1]));
+				} else if (sending_buf_next != active_buf){
+					//send next
+					EventGroup::getInstance().clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+					WiFi::getInstance().sendCommand(WiFi::TCP_SEND, &(data[sending_buf_next]));
+					sending_buf_next = (sending_buf_next + 1) % 5;
+				} else {
+					if (!measure) {
+						// Send last chunk
+						EventGroup::getInstance().clear(WIFI_COMMAND_ERROR | WIFI_CMD_PROCESSED);
+						WiFi::getInstance().sendCommand(WiFi::TCP_SEND, &(data[sending_buf_next]));
+						active_buf = (active_buf + 1) % 5;
+						data[active_buf].len = 0;
+					}
+					send_data_in_process = false;
+				}
+			}
 		}
 
 		if (result & MAG_DATA_AVAILABLE) {
@@ -67,7 +107,24 @@ void Position::run()
 			// TODO process magnetometer data
 		}
 
+		// while processing, new data emerged
+		if (HAL_GPIO_ReadPin(port, accReady))
+			notify(ACC_DATA_AVAILABLE);
+		if (HAL_GPIO_ReadPin(port, magReady))
+			notify(MAG_DATA_AVAILABLE);
+
+//		vTaskDelay(1000);
 	} while (1);
+}
+
+void Position::startMeasure()
+{
+	measure = true;
+}
+
+void Position::stopMeasure()
+{
+	measure = false;
 }
 
 void Position::testConnection()
@@ -87,11 +144,18 @@ void Position::writeConfig()
 #ifndef NDEBUG
 	uint8_t checkConfig[5];
 #endif
+	static uint8_t fifo_rst = 0, fifo_en = 0x20 | 10;
+	// Reset FIFO
+	i2c.write(addr[ACCELEROMETER], 0x2E, &fifo_rst, 1, this, I2C_COMM_FINISHED);
+	wait(I2C_COMM_FINISHED);
+	// Enable FIFO, set threshold to 10
+	i2c.write(addr[ACCELEROMETER], 0x2E, &fifo_en, 1, this, I2C_COMM_FINISHED);
+	wait(I2C_COMM_FINISHED);
+
 	static const uint8_t acc_config[] = {
-		0xEF, // HIGH RESOLUTION + ODR 800 HZ + BDU + ALL AXIS ENABLE
-		//0x9F, // HIGH RESOLUTION + ODR 10 HZ + BDU + ALL AXIS ENABLE
-		0x04, // Default filter parameters + filter enable
-		0x01, // Disable FIFO + Output available triggers IRQ
+		0xEF, // Low-pass filter on + ODR 800 HZ + BDU + ALL AXIS ENABLE
+		0x40, // Low-pass filter mode 2, High-pass filter off (why someone would ever need it??)
+		0x82, // Enable FIFO + FIFO treshold IRQ
 		0x04, // Enable address auto-increment
 	};
 	i2c.write(addr[ACCELEROMETER], 0x20, acc_config, sizeof (acc_config), this, I2C_COMM_FINISHED);
@@ -106,7 +170,6 @@ void Position::writeConfig()
 	wait(I2C_COMM_FINISHED);
 
 	assert_param(memcmp(checkConfig, acc_config, 4) == 0);
-
 #endif
 
 	static const uint8_t mag_config[] = {
@@ -126,22 +189,33 @@ void Position::writeConfig()
 #ifndef NDEBUG
 	i2c.read(addr[MAGNETOMETER], 0x20 | 0x80, checkConfig, sizeof (mag_config), this, I2C_COMM_FINISHED);
 	wait(I2C_COMM_FINISHED);
-#endif
 
 	assert_param(memcmp(checkConfig, mag_config, 5) == 0);
+#endif
 }
 
 bool Position::readData(Position::Sensor sensor)
 {
 	uint8_t status = 0;
-	i2c.read(addr[sensor], 0x27, &status, 1, this, I2C_COMM_FINISHED);
+	if (sensor == MAGNETOMETER) {
+		i2c.read(addr[sensor], 0x27, &status, 1, this, I2C_COMM_FINISHED);
 
-	wait(I2C_COMM_FINISHED);
-	if ((status & 0x08) == 0)
-		while (1); // How did we get here?...
+		wait(I2C_COMM_FINISHED);
+		if ((status & 0x08) == 0)
+			while (1); // How did we get here?...
+	} else { //Accel
+		i2c.read(addr[sensor], 0x2F, &status, 1, this, I2C_COMM_FINISHED);
+
+		wait(I2C_COMM_FINISHED);
+		if ((status & 0x80) == 0)
+			while (1); // How did we get here?...
+	}
+
+	time = xTaskGetTickCount();
 
 	i2c.read(addr[sensor], 0x28 | 0x80,
-		 (uint8_t *) (sensor == MAGNETOMETER ? magnet_raw : accel_raw), 6,
+		 (uint8_t *) (sensor == MAGNETOMETER ? magnet_raw : accel_raw),
+		 (sensor == MAGNETOMETER ? 6 : 60),
 		 this, I2C_COMM_FINISHED);
 
 	wait(I2C_COMM_FINISHED);

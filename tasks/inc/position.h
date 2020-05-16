@@ -29,13 +29,16 @@ class Position : public Task
 		[MAGNETOMETER] = 0x1E
 	};
 
-	int16_t accel_raw[3], magnet_raw[3];
+	int16_t accel_raw[30], magnet_raw[3];
 
 	float temp;
 
 	IRQn_Type accIrq, magIrq;
 	GPIO_TypeDef * port;
 	uint16_t accReady, magReady;
+
+	bool measure;
+	int time;
 
 	Position(const char * name, UBaseType_t priority,
 		 I2C& i2c, GPIO_TypeDef * port, uint16_t accReady, uint16_t magReady);
@@ -52,6 +55,9 @@ public:
 
 	void processAccIrq();
 	void processMagIrq();
+
+	void startMeasure();
+	void stopMeasure();
 };
 
 #endif // POSITION_H
