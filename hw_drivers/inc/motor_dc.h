@@ -5,6 +5,8 @@
 #include <stm32f4xx_hal.h>
 #include "pwm.h"
 
+#include "mutex.h"
+
 enum Direction {
 	FORWARD = 100,
 	BACKWARD = -100
@@ -19,6 +21,7 @@ enum Motor {
 class MotorDC
 {
 	PWM &forward, &backward;
+	Mutex mutex;
 	MotorDC(PWM& forward, PWM& backward);
 public:
 	static MotorDC& getInstance(Motor motor);
