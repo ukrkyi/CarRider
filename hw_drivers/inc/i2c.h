@@ -20,6 +20,7 @@ class I2C
 		SEND_ADDRESS,
 		SEND_REGISTER,
 		PROCESS_DATA,
+		STOP
 	} state;
 	enum OperationType {
 		NONE,

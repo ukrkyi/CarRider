@@ -66,7 +66,7 @@ I2C::I2C(I2C_TypeDef * i2c, GPIO_TypeDef * port, uint16_t sclPin, uint16_t sdaPi
 		.DutyCycle = LL_I2C_DUTYCYCLE_2,
 		.AnalogFilter = LL_I2C_ANALOGFILTER_ENABLE,
 		.DigitalFilter = 0x6,
-		.OwnAddress1 = 0x0,
+		.OwnAddress1 = 0x55,
 		.TypeAcknowledge = LL_I2C_ACK,
 		.OwnAddrSize = LL_I2C_OWNADDRESS1_7BIT
 	};
@@ -166,7 +166,13 @@ void I2C::processInterrupt()
 		}
 	}
 
-	if (LL_I2C_IsActiveFlag_TXE(i2c)) {
+	if (LL_I2C_IsActiveFlag_BTF(i2c) && state == STOP) {
+		state = STANDBY;
+		LL_I2C_DisableIT_EVT(i2c);
+		if (notifyTask != NULL)
+			notifyTask->notifyISR(notifyBit);
+		mutex.giveISR();
+	} else if (LL_I2C_IsActiveFlag_TXE(i2c)) {
 		switch (state) {
 		case SEND_ADDRESS:
 			// We just sent address, need transmit register address
@@ -191,13 +197,11 @@ void I2C::processInterrupt()
 				dataLeft--;
 				LL_I2C_TransmitData8(i2c, *(dataPtr++));
 			} else {
-				state = STANDBY;
+				state = STOP;
 				LL_I2C_GenerateStopCondition(i2c);
-				LL_I2C_DisableIT_EVT(i2c);
-				if (notifyTask != NULL)
-					notifyTask->notifyISR(notifyBit);
-				mutex.giveISR();
 			}
+			break;
+		case STOP:
 			break;
 		case START:
 		case STANDBY:
