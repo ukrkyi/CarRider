@@ -29,6 +29,7 @@ public:
 	/** event should be a combination from Event enum */
 	Event wait(int event);
 	void clear(int event);
+	int get();
 };
 
 #endif // EVENTGROUP_H

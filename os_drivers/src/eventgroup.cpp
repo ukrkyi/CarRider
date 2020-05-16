@@ -58,3 +58,8 @@ void EventGroup::clear(int event)
 {
 	xEventGroupClearBits(handle, event);
 }
+
+int EventGroup::get()
+{
+	return xEventGroupGetBits(handle);
+}
