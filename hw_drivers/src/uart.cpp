@@ -3,6 +3,7 @@
 
 #include "stm32f4xx_ll_dma.h"
 #include "stm32f4xx_ll_usart.h"
+#include "stm32f4xx_ll_rcc.h"
 
 #include "task.hpp"
 
@@ -11,7 +12,7 @@
 UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t rxPin,
 	   USART_TypeDef *uart, uint32_t baudrate,
 	   DMA_TypeDef *dma, uint32_t txStream, uint32_t rxStream) :
-	uart(uart), dma(dma), streamTx(txStream), streamRx(rxStream), queue(NULL), notifyReception(NULL)
+	uart(uart), dma(dma), streamTx(txStream), streamRx(rxStream), mutex(), queue(NULL), notifyReception(NULL)
 {
 	assert_param((txPort == GPIOA || txPort == GPIOB) && (rxPort == GPIOA || rxPort == GPIOB));
 
@@ -117,8 +118,21 @@ UART::UART(GPIO_TypeDef *txPort, uint16_t txPin, GPIO_TypeDef *rxPort, uint16_t 
 UART &UART::getInstance()
 {
 	static UART uart(GPIOA, GPIO_PIN_9, GPIOA, GPIO_PIN_10,
-		  USART1, 115200, DMA2, LL_DMA_STREAM_7, LL_DMA_STREAM_2);
+		  USART1, 1000000, DMA2, LL_DMA_STREAM_7, LL_DMA_STREAM_2);
 	return uart;
+}
+
+void UART::setBaud(uint32_t baud)
+{
+	// Assure that no communication is ongoing
+	mutex.take();
+	LL_RCC_ClocksTypeDef rcc_clocks;
+	LL_RCC_GetSystemClocksFreq(&rcc_clocks);
+	if (uart == USART1)
+		LL_USART_SetBaudRate(uart, rcc_clocks.PCLK2_Frequency, LL_USART_OVERSAMPLING_16, baud);
+	else
+		while (1);
+	mutex.give();
 }
 
 void UART::send(const uint8_t *data, uint32_t length)

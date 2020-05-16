@@ -119,6 +119,7 @@ private:
 	bool tcpConnectCmd(void * data);
 	bool tcpSendCmd(void * data);
 	bool updateCmd(void*);
+	bool changeBaud(void * data);
 
 	void sendMessage(int cmd, ...);
 	Response getResponse(int cmd, uint8_t *parameter = NULL);

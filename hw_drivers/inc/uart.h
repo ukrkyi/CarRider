@@ -32,6 +32,8 @@ public:
 	UART(const UART&) = delete;
 	static UART& getInstance();
 
+	void setBaud(uint32_t baud);
+
 	void send(const uint8_t *data, uint32_t length);
 	//template<int N> void send(typename Buffer<N>::chunk& data);
 	void startRx(uint8_t * buffer, uint32_t size, Queue<size_t>& queueRef, Task * notify = NULL);

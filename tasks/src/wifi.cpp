@@ -10,10 +10,12 @@
 enum AtCommand {
 	AT,
 	AT_GET_VERSION,
+	AT_UART_CONFIG,
 	AT_WIFI_MODE,
 	AT_WIFI_CONNECT,
 	AT_WIFI_CONNECT_SAVE,
 	AT_WIFI_QUERY,
+	AT_WIFI_POWER,
 	AT_TCP_CONNECT,
 	AT_TCP_SEND,
 	AT_RECEIVE_MODE,
@@ -46,22 +48,27 @@ static const char * wifi_evt[] = {
 static const int wifi_evt_num = sizeof(wifi_evt) / sizeof(char * );
 
 static const CommandType command[] = {
-	[AT] =		   {
+	[AT] =			 {
 		.name	= "AT",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_GET_VERSION] = {
+	[AT_GET_VERSION] =	 {
 		.name	= "AT+GMR",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_WIFI_MODE] = {
+	[AT_UART_CONFIG] =	 {
+		.name	= "AT+UART_DEF=%d,8,1,0,0",
+		.ok	= WiFi::GENERIC_OK,
+		.error	= WiFi::GENERIC_ERROR,
+	},
+	[AT_WIFI_MODE] =	 {
 		.name	= "AT+CWMODE_DEF=%d",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_WIFI_CONNECT] = {
+	[AT_WIFI_CONNECT] =	 {
 		.name	= "AT+CWJAP_CUR=\"%s\",\"%s\"",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_FAIL,
@@ -71,37 +78,42 @@ static const CommandType command[] = {
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_FAIL,
 	},
-	[AT_WIFI_QUERY] = {
+	[AT_WIFI_QUERY] =	 {
 		.name	= "AT+CWJAP?",
 		.ok	= WiFi::WIFI_CONNECTION_INFO,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_TCP_CONNECT] = {
+	[AT_WIFI_POWER] =	{
+		.name	= "AT+RFPOWER=%d",
+		.ok	= WiFi::GENERIC_OK,
+		.error	= WiFi::GENERIC_FAIL,
+	},
+	[AT_TCP_CONNECT] =	 {
 		.name	= "AT+CIPSTART=\"TCP\",\"%s\",%d",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_TCP_SEND] =	   {
+	[AT_TCP_SEND] =		 {
 		.name	= "AT+CIPSEND=%d",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_RECEIVE_MODE] = {
+	[AT_RECEIVE_MODE] =	 {
 		.name	= "AT+CIPRECVMODE=%d",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_UPDATE] = {
+	[AT_UPDATE] =		 {
 		.name	= "AT+CIUPDATE",
 		.ok	= WiFi::UPDATE_PROGRESS,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_RESTORE_FACTORY] = {
+	[AT_RESTORE_FACTORY] =	 {
 		.name	= "AT+RESTORE",
 		.ok	= WiFi::GENERIC_OK,
 		.error	= WiFi::GENERIC_ERROR,
 	},
-	[AT_WRITE_DATA] =  {
+	[AT_WRITE_DATA] =	 {
 		.name	= NULL,
 		.ok	= WiFi::TCP_SEND_OK,
 		.error	= WiFi::TCP_SEND_FAIL,
@@ -320,9 +332,9 @@ bool WiFi::wifiConnect(void *data)
 		sendMessage(AT_WIFI_QUERY);
 
 		resp = getResponse(AT_WIFI_QUERY, buffer);
-		if (resp == command[AT_WIFI_QUERY].ok) {
+		if (resp == command[AT_WIFI_QUERY].ok)
 			return true;
-		} else
+		else
 			return false;
 	} else {
 		AccessPoint *ap = (AccessPoint*)data;
@@ -334,9 +346,9 @@ bool WiFi::wifiConnect(void *data)
 
 		resp = getResponse(AT_WIFI_CONNECT);
 
-		if (resp == command[AT_WIFI_CONNECT].ok) {
+		if (resp == command[AT_WIFI_CONNECT].ok)
 			return true;
-		} else
+		else
 			return false;
 	}
 }
@@ -446,6 +458,19 @@ bool WiFi::updateCmd(void *)
 	return true;
 }
 
+bool WiFi::changeBaud(void *data)
+{
+	uint32_t baud = *(uint32_t *) data;
+	sendMessage(AT_UART_CONFIG, baud);
+	Response resp = getResponse(AT_WIFI_MODE);
+
+	if (resp == command[AT_WIFI_CONNECT].ok){
+		uart.setBaud(baud);
+		return true;
+	} else
+		return false;
+}
+
 void WiFi::sendMessage(int cmd, ...)
 {
 	static char commandBuffer[50];
@@ -480,6 +505,7 @@ int WiFi::argToInt(uint8_t *data) const
 {
 	char * end;
 	int result = strtol((char*)data, &end, 10);
+
 	if (*end != '\r')
 		while (1);
 	return result;
