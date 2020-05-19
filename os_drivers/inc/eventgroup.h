@@ -14,6 +14,9 @@ enum Event {
 	WIFI_DATA_RECEIVED   = 0x20,
 	WIFI_CMD_PROCESSED   = 0x40,
 	WIFI_COMMAND_ERROR   = 0x80,
+	// Tasks go here
+	POSITION_TASK_READY  = 0x100,
+	LOG_TASK_READY       = 0x200,
 };
 
 class EventGroup

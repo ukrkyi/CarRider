@@ -43,6 +43,7 @@ static const char * wifi_evt[] = {
 	[WiFi::WIFI_CONNECTION_INFO] = "+CWJAP:",
 	[WiFi::TCP_SEND_OK] = "SEND OK",
 	[WiFi::TCP_SEND_FAIL] = "SEND FAIL",
+	[WiFi::TCP_CONNECTION_CLOSED] = "CLOSED",
 };
 
 static const int wifi_evt_num = sizeof(wifi_evt) / sizeof(char * );
@@ -290,6 +291,9 @@ void WiFi::processMessage(WiFi::Response msg, uint8_t *data)
 		break;
 	case WIFI_CONNECTION_LOST:
 		setState(WIFI_DISCONNECTED);
+		break;
+	case TCP_CONNECTION_CLOSED:
+		setState(WIFI_CONNECTED);
 		break;
 	case DATA_RECEIVED:
 	{

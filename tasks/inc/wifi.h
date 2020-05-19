@@ -39,6 +39,7 @@ public:
 		WIFI_CONNECTION_INFO,
 		TCP_SEND_OK,
 		TCP_SEND_FAIL,
+		TCP_CONNECTION_CLOSED,
 	};
 
 	enum State {

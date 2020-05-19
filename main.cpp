@@ -11,6 +11,7 @@
 #include "wifi.h"
 #include "position.h"
 #include "maintask.h"
+#include "log.h"
 
 #include <stdio.h>
 
@@ -25,6 +26,7 @@ int main()
 	Main::getInstance();
 	WiFi::getInstance(); // create WiFi task
 	Position::getInstance(); // create Position task
+	Log::getInstance();
 
 	/* Start the scheduler. */
 	vTaskStartScheduler();

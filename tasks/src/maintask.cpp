@@ -4,6 +4,7 @@
 // Tasks
 #include "wifi.h"
 #include "position.h"
+#include "log.h"
 
 //Drivers
 #include "motor_dc.h"
@@ -25,55 +26,7 @@ void Main::run()
 
 	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
 			&turn = MotorDC::getInstance(MOTOR_TURN);
-	const WiFi::Socket comp = { "10.42.0.1", 1488 };
-	const WiFi::AccessPoint ap = { "ukrkyi-hotspot", "qwe123QWE!@#", false };
 
-	WiFi::Data data;
-
-	LED & led = LED::getInstance();
-	WiFi & wifi = WiFi::getInstance();
-
-	EventGroup &evt = EventGroup::getInstance();
-
-	evt.clear(WIFI_COMMAND_ERROR);
-
-	Event res;
-
-	wifi.sendCommand(WiFi::POWER_ON);
-
-	res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
-
-	if (res & WIFI_COMMAND_ERROR)
-		while (1);         // TODO handle error
-
-	vTaskDelay(1000);
-
-	//	while (wifi.getState() != WiFi::WIFI_CONNECTED)
-	//		evt.wait(WIFI_STATE_CHANGED);
-
-	if (wifi.getState() != WiFi::WIFI_CONNECTED) {
-		wifi.sendCommand(WiFi::WIFI_CONNECT, (void*)&ap);
-
-		res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
-
-		if (res & WIFI_COMMAND_ERROR)
-			while (1);         // TODO handle error
-	}
-
-	do {
-		wifi.sendCommand(WiFi::TCP_CONNECT, (void*)&comp);
-		res = evt.wait(WIFI_COMMAND_ERROR | WIFI_STATE_CHANGED);
-
-		if (res & WIFI_COMMAND_ERROR) {
-			led.on();
-			vTaskDelay(1000);
-			continue;
-		}
-	} while (wifi.getState() != WiFi::TCP_CONNECTED);
-
-	led.off();
-
-	wifi.sendCommand(WiFi::TCP_SEND, &(data = { 3, "o/\n" }));
 
 	//	Ultrasonic & range = Ultrasonic::getInstance();
 
@@ -95,6 +48,9 @@ void Main::run()
 	//		evt.wait(WIFI_CMD_PROCESSED);
 	//		vTaskDelay(5000);
 	//	}
+
+	EventGroup::getInstance().wait(LOG_TASK_READY);
+	EventGroup::getInstance().wait(POSITION_TASK_READY);
 
 	Position & pos = Position::getInstance();
 
