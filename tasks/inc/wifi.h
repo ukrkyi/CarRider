@@ -60,7 +60,7 @@ public:
 	};
 
 	struct Data {
-		unsigned len;
+		size_t len;
 		union {
 			const char * const_str;
 			char * string;
@@ -80,7 +80,7 @@ public:
 	inline State getState() const {return state;}
 
 private:
-	typedef Buffer<50> BufferType;
+	typedef InputBuffer<50> BufferType;
 
 	struct CommandInfo {
 		Command cmd;
