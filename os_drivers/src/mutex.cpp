@@ -20,3 +20,8 @@ void Mutex::unlock()
 {
 	xSemaphoreGive(handle);
 }
+
+bool Mutex::isAlreadyLocked()
+{
+	return xSemaphoreGetMutexHolder(handle) == xTaskGetCurrentTaskHandle();
+}

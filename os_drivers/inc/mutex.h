@@ -14,6 +14,7 @@ public:
 	~Mutex();
 	void lock();
 	void unlock();
+	bool isAlreadyLocked();
 };
 
 #endif // MUTEX_H

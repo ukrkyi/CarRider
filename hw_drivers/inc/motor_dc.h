@@ -8,7 +8,7 @@
 #include "mutex.h"
 
 enum Direction {
-	FORWARD = 100,
+	FORWARD	 = +100,
 	BACKWARD = -100
 };
 

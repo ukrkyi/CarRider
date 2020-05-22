@@ -24,7 +24,8 @@ MotorDC &MotorDC::getInstance(Motor motor)
 
 void MotorDC::run(int speed)
 {
-	mutex.lock();
+	if (!mutex.isAlreadyLocked())
+		mutex.lock();
 	if (speed > 0) {
 		backward.stop();
 		forward.set(speed);
