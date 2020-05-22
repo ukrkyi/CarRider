@@ -49,7 +49,9 @@ void Log::run()
 
 	connectTcp();
 
+	evt.clear(WIFI_CMD_PROCESSED);
 	wifi.sendCommand(WiFi::TCP_SEND, &(data = { 3, "o/\n" }));
+	evt.wait(WIFI_CMD_PROCESSED);
 
 	evt.notify(LOG_TASK_READY);
 
