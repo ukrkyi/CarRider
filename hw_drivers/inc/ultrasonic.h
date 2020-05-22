@@ -9,6 +9,7 @@ class Ultrasonic
 	TIM_HandleTypeDef trigTim, echoTim;
 	uint32_t trigCh, echoCh;
 	volatile float distance;
+	float temp = +20;
 	Ultrasonic(GPIO_TypeDef * trigPort, uint16_t trigPin,
 		   GPIO_TypeDef * echoPort, uint16_t echoPin,
 		   TIM_TypeDef * trigTimer, uint32_t trigChannel,
@@ -21,6 +22,7 @@ public:
 	void stop();
 	void processEcho(float avgSpeed); // meters per us
 	float getDistance() const;
+	void setTemperature(float value);
 };
 
 #endif // ULTRASONIC_H

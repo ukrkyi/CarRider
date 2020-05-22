@@ -5,9 +5,19 @@
 
 #include "system.h"
 
+#include <cmath>
+
 float Ultrasonic::getDistance() const
 {
-	return distance;
+	if (distance > 1)
+		return distance;
+	else
+		return INFINITY;
+}
+
+void Ultrasonic::setTemperature(float value)
+{
+	temp = value;
 }
 
 Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *echoPort, uint16_t echoPin, TIM_TypeDef *trigTimer, uint32_t trigChannel, TIM_TypeDef *echoTimer, uint32_t echoChannel, uint32_t period)
@@ -75,7 +85,7 @@ Ultrasonic::Ultrasonic(GPIO_TypeDef *trigPort, uint16_t trigPin, GPIO_TypeDef *e
 	echoTim.Instance = echoTimer;
 	echoTim.Init.Prescaler = SystemCoreClock/1000000 - 1; // running at 1 uS
 	echoTim.Init.CounterMode = TIM_COUNTERMODE_UP;
-	echoTim.Init.Period = period - 1001;// Count till 1 mS before next tick
+	echoTim.Init.Period = TIM_ARR_ARR;// Count till maximum value
 	echoTim.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	echoTim.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 	HAL_TIM_IC_Init(&echoTim);
@@ -134,8 +144,7 @@ void Ultrasonic::processEcho(float avgSpeed)
 	} else
 		while(1);
 	uint32_t us = __HAL_TIM_GET_COMPARE(&echoTim, echoCh);
-	const uint32_t temp = +20;
-	const float soundSpeed = ((float)(331300+596*temp))/1000000;
+	float soundSpeed = (331300+596*temp)/1000000;
 	distance = us*(soundSpeed - avgSpeed)/2;
 	EventGroup::getInstance().notifyISR(ULTRASONIC_NEW_DATA);
 	// We ignore output value since we can't do anything about it for now
