@@ -6,6 +6,7 @@ CppApplication {
 
     consoleApplication: true
     files: [
+        "CMSIS/inc/arm_math.h",
         "CMSIS/inc/cmsis_compiler.h",
         "CMSIS/inc/cmsis_gcc.h",
         "CMSIS/inc/cmsis_version.h",
@@ -122,7 +123,8 @@ CppApplication {
         cpp.commonCompilerFlags: [
             "-g3",
             "-ffunction-sections",
-            "-fdata-sections"
+            "-fdata-sections",
+            "-Wconversion",
         ]
         cpp.debugInformation: true
         qbs.optimization: "none"
@@ -135,14 +137,15 @@ CppApplication {
             "-flto",
             "-ffunction-sections",
             "-fdata-sections",
-            "-DNDEBUG"
+            "-DNDEBUG",
+            "-Wconversion",
         ]
         //cpp.defines: ['NDEBUG'] can't use here bc it overwrites other defines
         cpp.debugInformation: false
         qbs.optimization: "small"
     }
 
-    cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER', 'USE_FULL_LL_DRIVER']
+    cpp.defines: ['STM32F401xC', 'USE_HAL_DRIVER', 'USE_FULL_LL_DRIVER', 'ARM_MATH_CM4=1']
     cpp.includePaths: ["inc", "os_drivers/inc", "hw_drivers/inc", "tasks/inc"]
     cpp.systemIncludePaths: ["CMSIS/inc", "HAL/inc", "FreeRTOS/inc", "FreeRTOS/portable/GCC_ARM_CM4F"]
 

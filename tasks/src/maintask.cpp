@@ -27,45 +27,41 @@ void Main::run()
 	MotorDC & drive = MotorDC::getInstance(MOTOR_DRIVE),
 			&turn = MotorDC::getInstance(MOTOR_TURN);
 
+	EventGroup & evt = EventGroup::getInstance();
 
-	//	Ultrasonic & range = Ultrasonic::getInstance();
+	evt.wait(LOG_TASK_READY);
+	evt.wait(POSITION_TASK_READY);
 
-	//	range.start();
-
-	//	static float distance;
-	//	static char str[25];
-	//	static unsigned size;
-
-	//	while(1) {
-	//		evt.wait(ULTRASONIC_NEW_DATA);
-
-	//		distance = range.getDistance();
-	//		size = snprintf(str, 25, "Ultrasonic: %d.%d mm\n", (int) distance, (int) (distance * 10) % 10);
-	//		data = {size, str};
-
-	//		evt.clear(WIFI_CMD_PROCESSED);
-	//		wifi.sendCommand(WiFi::TCP_SEND, &data);
-	//		evt.wait(WIFI_CMD_PROCESSED);
-	//		vTaskDelay(5000);
-	//	}
-
-	EventGroup::getInstance().wait(LOG_TASK_READY);
-	EventGroup::getInstance().wait(POSITION_TASK_READY);
+	Ultrasonic & range = Ultrasonic::getInstance();
+	range.start();
 
 	Position & pos = Position::getInstance();
-
 	pos.startMeasure();
 
 	vTaskDelay(1000);
 
 	drive.run(70);
-	vTaskDelay(2000);
 
-	turn.run(FORWARD);
-	vTaskDelay(1000);
+	uint32_t count = xTaskGetTickCount();
+	static float distance;
+	while (xTaskGetTickCount() - count < 4000) {
+		evt.wait(ULTRASONIC_NEW_DATA);
 
-	turn.stop();
-	vTaskDelay(1000);
+		distance = range.getDistance();
+
+		if (distance > 50 && distance < 500) {
+			drive.stop();
+			Log::getInstance().write("Error: object detected at %d mm.\n", (int) distance);
+			break;
+		}
+
+		if (xTaskGetTickCount() - count >= 3000)
+			turn.stop();
+		else if (xTaskGetTickCount() - count >= 2000)
+			turn.run(BACKWARD);
+		else if (xTaskGetTickCount() - count >= 1000)
+			turn.run(FORWARD);
+	}
 
 	drive.stop();
 	vTaskDelay(2000);
