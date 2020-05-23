@@ -49,7 +49,8 @@ void Main::run()
 
 		distance = range.getDistance();
 
-		if (distance > 50 && distance < 500) {
+		if (distance > 50 && distance < 400) {
+			turn.stop();
 			drive.stop();
 			Log::getInstance().write("Error: object detected at %d mm.\n", (int) distance);
 			break;

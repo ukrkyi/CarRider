@@ -131,7 +131,7 @@ void Position::writeConfig()
 
 	static const uint8_t acc_config[] = {
 		0xEF, // Low-pass filter on + ODR 800 HZ + BDU + ALL AXIS ENABLE
-		0x40, // Low-pass filter mode 2, High-pass filter off (why someone would ever need it??)
+		0x00, // Low-pass filter mode 2, High-pass filter off (why someone would ever need it??)
 		0x82, // Enable FIFO + FIFO treshold IRQ
 		0x04, // Enable address auto-increment
 	};
@@ -291,8 +291,8 @@ void Position::processAccel()
 
 		// Calculate acceleration in millimeters per second^2
 		// NOTE should we handle this uniquely?
-		float acceleration_x = averaged_acceleration[X] * 1000 * 10.f / accel.calib[Z];
-		float acceleration_y = averaged_acceleration[Y] * 10.f * 0.061f;
+		float acceleration_x = averaged_acceleration[X] * 1000 * 9.81f / accel.calib[Z];
+		float acceleration_y = averaged_acceleration[Y] * 9.81f * 0.061f;
 
 		static const float discretization = accel.average_samples / 800.f;
 
@@ -345,10 +345,7 @@ void Position::processAccel()
 			else
 				momental_velocity = velocity_forward + acceleration_forward * discretization;
 
-			if (fabsf(momental_velocity) >= 250)
-				momental_angle_v = acceleration_center / momental_velocity;
-			else
-				momental_angle_v = 0;
+			momental_angle_v = 0;
 		}
 
 		float beta = atanf(tanf(delta) / 2);
@@ -361,8 +358,7 @@ void Position::processAccel()
 
 		if (measure) {
 			Log & log = Log::getInstance();
-			log.write("%d,%d.%d,%d.%d,%d.%d",
-				  xTaskGetTickCount(),
+			log.write("POS:%d.%d,%d.%d,%d.%d",
 				  (int) position_x,       abs((int) (position_x       * 1000) % 1000),
 				  (int) position_y,       abs((int) (position_y       * 1000) % 1000),
 				  (int) (angle * 180/PI), abs((int) (angle * 180 / PI * 1000) % 1000));
